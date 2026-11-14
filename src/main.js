@@ -1,5 +1,6 @@
 import { CakeScene } from './cakeScene.js';
 import { HologramViewer } from './hologramViewer.js';
+import { MicBlowDetector } from './micBlowDetector.js';
 import { fireGrandCelebration, fireSideCannons } from './confetti.js';
 import { MEMORIES } from './memoriesData.js';
 
@@ -44,14 +45,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3D Gaussian Splat & Spatial Hologram Viewer for Polaroid Zoom
   const hologramViewer = new HologramViewer(hologramViewport, hologramCard);
 
+  // Microphone Blow Detection
+  let micDetector = null;
+
+  // Request iOS permissions immediately upon direct user touch
+  const requestSensors = () => {
+    // 1. iOS DeviceOrientation permission
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(res => console.log('DeviceOrientation permission:', res))
+        .catch(err => console.log('DeviceOrientation err:', err));
+    }
+
+    // 2. Microphone access for blowing out the candle
+    if (!micDetector) {
+      micDetector = new MicBlowDetector(() => {
+        if (cakeScene && !cakeScene.isBlownOut) {
+          cakeScene.blowOut();
+        }
+      });
+      micDetector.start();
+    }
+  };
+
   // STAGE 1: TAP WAX SEAL / ENVELOPE
   const handleOpenEnvelope = () => {
     startMusic();
-
-    // Request iOS orientation permission early on user gesture
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().catch(() => {});
-    }
+    requestSensors();
 
     envelopeTrigger.classList.add('open');
 
@@ -62,12 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   waxSeal.addEventListener('click', handleOpenEnvelope);
+  waxSeal.addEventListener('touchend', handleOpenEnvelope, { passive: true });
   envelopeTrigger.addEventListener('click', handleOpenEnvelope);
 
   // STAGE 2: CLOSE LETTER -> REVEAL 3D CAKE & VIDEO MONTAGE
   let cakeScene = null;
 
   btnCloseLetter.addEventListener('click', () => {
+    requestSensors();
     stageLetter.classList.add('hidden');
 
     // Reveal cake stage
@@ -82,11 +104,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!cakeScene) {
         cakeScene = new CakeScene(cakeCanvas, handleCandleBlowOut);
       }
+
+      // Activate microphone listener for breath/blow
+      if (micDetector) {
+        micDetector.start();
+      }
     }, 400);
   });
 
   // STAGE 3: BLOW OUT CANDLE -> CAKE FADES -> FAIRY LIGHT POLAROID WALL
   const handleCandleBlowOut = () => {
+    if (micDetector) {
+      micDetector.stop();
+    }
+
     fireGrandCelebration();
     setTimeout(() => fireSideCannons(), 300);
 
@@ -97,7 +128,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       stageCake.classList.add('hidden');
       stagePolaroids.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Enable natural smooth vertical scrolling on the document
+      document.documentElement.style.overflowY = 'auto';
+      document.body.style.overflowY = 'auto';
+      window.scrollTo(0, 0);
     }, 1900);
   };
 
@@ -167,17 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
     hologramDate.textContent = mem.date;
     hologramViewer.loadMemory(mem.photo, mem.depth);
     modalHologram.classList.add('active');
+    document.body.style.overflow = 'hidden'; // lock background scroll while modal open
   };
 
   const closeHologramModal = () => {
     modalHologram.classList.remove('active');
+    document.body.style.overflow = 'auto'; // restore natural scrolling
     if (hologramCard) {
       hologramCard.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.92)';
     }
   };
 
   modalHologram.addEventListener('click', (e) => {
-    // If clicked on backdrop or close hint, close modal
     if (e.target === modalHologram || e.target === btnCloseHologram) {
       closeHologramModal();
     }

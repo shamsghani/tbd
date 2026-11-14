@@ -341,21 +341,26 @@ html, body {
 /* =========================================
    STAGE 4: FAIRY LIGHT CLOTHESLINE WALL
 ========================================= */
-#stage-polaroids {
-  position: relative;
-  min-height: 100dvh;
-  width: 100vw;
+#stage-polaroids.stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100vh;
+  height: auto;
   background: #0d0f15;
   background-image: 
-    radial-gradient(circle at 50% 20%, rgba(255, 200, 122, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 50% 15%, rgba(255, 200, 122, 0.08) 0%, transparent 60%),
     radial-gradient(circle at 20% 80%, rgba(255, 117, 143, 0.06) 0%, transparent 50%);
   z-index: 20;
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: hidden;
-  padding: 2.5rem 0.5rem 6rem;
+  padding: 3rem 0.5rem 8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  touch-action: pan-y;
 }
 
 .fairy-wall-header {
@@ -378,7 +383,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 3.5rem;
-  padding-bottom: 2rem;
+  padding-bottom: 3rem;
+  touch-action: pan-y;
 }
 
 /* Hanging Fairy String Row */
@@ -386,6 +392,7 @@ html, body {
   position: relative;
   width: 100%;
   padding-top: 25px;
+  touch-action: pan-y;
 }
 
 /* Curved illuminated wire */
@@ -436,14 +443,16 @@ html, body {
   100% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 14px 6px rgba(255, 213, 79, 0.9); }
 }
 
-/* Horizontal scrolling track of hanging polaroids */
+/* Horizontal scrolling track of hanging polaroids - allows vertical scroll pass-through */
 .hanging-polaroids-track {
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 15px 1.5rem 25px;
-  scrollbar-width: none; /* Hide scrollbar for clean aesthetic */
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
 }
 
 .hanging-polaroids-track::-webkit-scrollbar {
