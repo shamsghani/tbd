@@ -1,0 +1,508 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --bg-deep: #06070a;
+  --bg-paper: #fcf9f2;
+  --text-dark: #2a221f;
+  --text-light: #f5f5f7;
+  --accent-gold: #e5c38c;
+  --accent-crimson: #a31d36;
+  --envelope-body: #1c1a24;
+  --envelope-flap: #24222f;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-deep);
+  color: var(--text-light);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Base Stage Container */
+.stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.stage.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.97);
+}
+
+/* =========================================
+   STAGE 1: FULLSCREEN ENVELOPE
+========================================= */
+#stage-envelope {
+  background: radial-gradient(circle at 50% 40%, #171520 0%, #08070c 100%);
+  z-index: 50;
+}
+
+.envelope-wrapper {
+  position: relative;
+  width: min(340px, 86vw);
+  height: 240px;
+  perspective: 1200px;
+  cursor: pointer;
+}
+
+.envelope-back {
+  position: absolute;
+  inset: 0;
+  background: var(--envelope-body);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(163, 29, 54, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Paper letter peeking inside */
+.envelope-letter-peek {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  right: 20px;
+  height: 200px;
+  background: var(--bg-paper);
+  border-radius: 6px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.06);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Envelope pockets */
+.envelope-pocket {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  clip-path: polygon(0% 100%, 50% 45%, 100% 100%);
+  background: #191722;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.envelope-side-left {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  clip-path: polygon(0% 0%, 0% 100%, 55% 55%);
+  background: #14131c;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.envelope-side-right {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  clip-path: polygon(100% 0%, 100% 100%, 45% 55%);
+  background: #14131c;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Flap with 3D open transition */
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: var(--envelope-flap);
+  clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+  transform-origin: top center;
+  transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 4;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.envelope-wrapper.open .envelope-flap {
+  transform: rotateX(180deg);
+  z-index: 1;
+}
+
+/* Realistic Wax Seal */
+.wax-seal {
+  position: absolute;
+  top: 95px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #d12d4d, #7c0e22);
+  border: 2px solid #e04362;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+  animation: sealPulse 2.8s ease-in-out infinite;
+}
+
+.wax-seal:hover, .wax-seal:active {
+  transform: translateX(-50%) scale(1.06);
+}
+
+.wax-seal span {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffe6ec;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.envelope-hint {
+  margin-top: 2.5rem;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.05em;
+  transition: opacity 0.5s ease;
+}
+
+@keyframes sealPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.04); box-shadow: 0 12px 30px rgba(209, 45, 77, 0.4); }
+}
+
+/* =========================================
+   STAGE 2: FULLSCREEN PARCHMENT LETTER
+========================================= */
+#stage-letter {
+  background: rgba(8, 9, 14, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 1.5rem 1rem;
+  z-index: 40;
+}
+
+.paper-sheet {
+  width: min(440px, 92vw);
+  max-height: min(720px, 90dvh);
+  background-color: var(--bg-paper);
+  background-image: 
+    radial-gradient(#e5ddd3 1px, transparent 1px),
+    radial-gradient(circle at 10% 10%, rgba(214, 196, 175, 0.2) 0%, transparent 60%);
+  background-size: 24px 24px, 100% 100%;
+  color: var(--text-dark);
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 3px rgba(0, 0, 0, 0.1);
+  padding: 2.2rem 1.8rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  font-family: 'Caveat', cursive, Georgia;
+  border: 1px solid #e8dfd3;
+}
+
+.letter-salutation {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #6b1424;
+  margin-bottom: 1.2rem;
+  line-height: 1.2;
+}
+
+.letter-content {
+  font-size: 1.45rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  flex: 1;
+  color: #2b221e;
+}
+
+.letter-close-btn {
+  margin-top: 2rem;
+  align-self: center;
+  background: transparent;
+  border: none;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: #7c685d;
+  cursor: pointer;
+  padding: 0.6rem 1.4rem;
+  border-bottom: 1px solid rgba(124, 104, 93, 0.4);
+  transition: all 0.25s ease;
+}
+
+.letter-close-btn:active {
+  color: #2b221e;
+  border-color: #2b221e;
+  transform: translateY(1px);
+}
+
+/* =========================================
+   STAGE 3: BLACKOUT & 3D CAKE REVEAL
+========================================= */
+#stage-cake {
+  background-color: #030406;
+  z-index: 30;
+}
+
+/* Video montage playing softly in the dark */
+.cake-bg-video-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cake-bg-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.22;
+  filter: blur(1.5px) saturate(1.2);
+  transform: scale(1.05);
+}
+
+.cake-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(3,4,6,0.3) 0%, #030406 85%);
+}
+
+.cake-centerpiece {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.cake-centerpiece.fade-out {
+  opacity: 0;
+  transform: translateY(-40px) scale(0.9);
+  pointer-events: none;
+}
+
+.cake-canvas-wrap {
+  width: min(380px, 95vw);
+  height: min(420px, 55vh);
+  cursor: pointer;
+}
+
+.cake-whisper {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.35rem;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 1rem;
+  text-align: center;
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; text-shadow: 0 0 15px rgba(255, 200, 122, 0.4); }
+}
+
+/* =========================================
+   STAGE 4: SCATTERED POLAROID GRID
+========================================= */
+#stage-polaroids {
+  position: relative;
+  min-height: 100dvh;
+  width: 100vw;
+  background: #050608;
+  z-index: 20;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 3rem 1.2rem 6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.polaroid-grid-intro {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.05em;
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.polaroid-scatter-flow {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.2rem;
+}
+
+.scatter-item {
+  width: min(290px, 82vw);
+  background: #fbfbf9;
+  border-radius: 4px;
+  padding: 12px 12px 28px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.scatter-item:hover, .scatter-item:active {
+  transform: scale(1.03) rotate(0deg) !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.85);
+  z-index: 10;
+}
+
+.scatter-photo-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #1a1a1a;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.scatter-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scatter-caption {
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  color: #1f2229;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.scatter-date {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.7rem;
+  color: #8c9099;
+  text-align: center;
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* =========================================
+   STAGE 5: FULLSCREEN HOLOGRAPHIC ZOOM MODAL
+========================================= */
+#modal-hologram-zoom {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(3, 4, 7, 0.94);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#modal-hologram-zoom.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hologram-polaroid-frame {
+  width: min(340px, 86vw);
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 14px 14px 34px;
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 200, 122, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transform: scale(0.92);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#modal-hologram-zoom.active .hologram-polaroid-frame {
+  transform: scale(1);
+}
+
+/* Inside the polaroid: WebGL Holographic Parallax Container */
+.hologram-viewport {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+  cursor: grab;
+}
+
+.hologram-viewport:active {
+  cursor: grabbing;
+}
+
+.hologram-viewport canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.hologram-caption {
+  font-family: 'Caveat', cursive;
+  font-size: 1.55rem;
+  color: #1a1c22;
+  margin-top: 14px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.hologram-date {
+  font-size: 0.72rem;
+  color: #7b808a;
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+
+.hologram-close-hint {
+  margin-top: 2rem;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1rem;
+}

@@ -4,6 +4,12 @@ node_modules/
 dist/
 .cache/
 
+# Raw media captures (keep repo lightweight for GitHub Pages)
+asstes/
+temp_thumbs/
+*.mov
+*.heic
+
 # Environment variables
 .env
 .env.local

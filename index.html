@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Happy Birthday Tehrim ✨</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎂</text></svg>">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+
+  <!-- STAGE 1: FULLSCREEN WAX SEAL ENVELOPE -->
+  <section id="stage-envelope" class="stage">
+    <div class="envelope-wrapper" id="envelope-trigger">
+      <div class="envelope-back"></div>
+      <div class="envelope-letter-peek"></div>
+      <div class="envelope-side-left"></div>
+      <div class="envelope-side-right"></div>
+      <div class="envelope-pocket"></div>
+      <div class="envelope-flap"></div>
+      <div class="wax-seal" id="wax-seal">
+        <span>T</span>
+      </div>
+    </div>
+    <p class="envelope-hint">tap the wax seal to open</p>
+  </section>
+
+  <!-- STAGE 2: FULLSCREEN PARCHMENT LETTER -->
+  <section id="stage-letter" class="stage hidden">
+    <div class="paper-sheet">
+      <div class="letter-salutation">Dearest Tehrim,</div>
+      <div class="letter-content" id="letter-content-text">Happy Birthday! 🎉
+
+[Write your personal birthday message for Tehrim here — inside jokes, memories, heartfelt wishes, and love for her year ahead.]
+
+Always,
+Your Friend ✨</div>
+      <button id="btn-close-letter" class="letter-close-btn">
+        fold letter & continue ➔
+      </button>
+    </div>
+  </section>
+
+  <!-- STAGE 3: BLACKOUT & 3D CAKE REVEAL WITH VIDEO MONTAGE -->
+  <section id="stage-cake" class="stage hidden">
+    <div class="cake-bg-video-wrap">
+      <video id="cake-montage-video" class="cake-bg-video" playsinline loop muted></video>
+      <div class="cake-bg-overlay"></div>
+    </div>
+
+    <div class="cake-centerpiece" id="cake-centerpiece">
+      <div id="cake-canvas" class="cake-canvas-wrap"></div>
+      <p class="cake-whisper">make a wish & blow out the candle</p>
+    </div>
+  </section>
+
+  <!-- STAGE 4: SCATTERED POLAROID GRID -->
+  <section id="stage-polaroids" class="stage hidden">
+    <p class="polaroid-grid-intro">tap a memory to step inside</p>
+    <div class="polaroid-scatter-flow" id="polaroid-scatter-list">
+      <!-- Populated dynamically by main.js -->
+    </div>
+  </section>
+
+  <!-- STAGE 5: FULLSCREEN HOLOGRAPHIC ZOOM MODAL -->
+  <div id="modal-hologram-zoom">
+    <div class="hologram-polaroid-frame" id="hologram-polaroid-card">
+      <div class="hologram-viewport" id="hologram-viewport">
+        <!-- Three.js Hologram canvas rendered here -->
+      </div>
+      <div class="hologram-caption" id="hologram-caption">Under the Fairy Lights</div>
+      <div class="hologram-date" id="hologram-date">November 2026</div>
+    </div>
+    <div class="hologram-close-hint" id="btn-close-hologram">
+      tap anywhere to return
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
