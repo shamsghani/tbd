@@ -6,9 +6,59 @@ import { MEMORIES } from './memoriesData.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
+  const stageLock = document.getElementById('stage-lock');
+  const lockForm = document.getElementById('lock-form');
+  const lockInput = document.getElementById('lock-input');
+  const lockError = document.getElementById('lock-error');
+  const lockCard = document.getElementById('lock-card');
+
   const stageEnvelope = document.getElementById('stage-envelope');
   const envelopeTrigger = document.getElementById('envelope-trigger');
   const waxSeal = document.getElementById('wax-seal');
+
+  // Cryptographic Salted Hash Verification for "lmeyp"
+  async function verifyPasscode(input) {
+    const salt = 'tehrim_2026_special_salt';
+    const targetHash = '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e';
+    const normalized = `${salt}:${input.trim().toLowerCase()}`;
+    const msgBuffer = new TextEncoder().encode(normalized);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex === targetHash;
+  }
+
+  const unlockSite = () => {
+    sessionStorage.setItem('tehrim_auth', 'true');
+    stageLock.classList.add('hidden');
+    stageEnvelope.classList.remove('hidden');
+  };
+
+  // Check if already authenticated during this session
+  if (sessionStorage.getItem('tehrim_auth') === 'true') {
+    stageLock.classList.add('hidden');
+    stageEnvelope.classList.remove('hidden');
+  }
+
+  const handleUnlockAttempt = async (e) => {
+    if (e) e.preventDefault();
+    const val = lockInput.value;
+    if (!val) return;
+
+    const isMatch = await verifyPasscode(val);
+    if (isMatch) {
+      unlockSite();
+    } else {
+      lockError.textContent = 'incorrect secret word';
+      lockCard.classList.remove('shake-anim');
+      void lockCard.offsetWidth; // re-trigger animation
+      lockCard.classList.add('shake-anim');
+      lockInput.value = '';
+      lockInput.focus();
+    }
+  };
+
+  lockForm.addEventListener('submit', handleUnlockAttempt);
 
   const stageLetter = document.getElementById('stage-letter');
   const btnCloseLetter = document.getElementById('btn-close-letter');
