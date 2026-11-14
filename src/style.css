@@ -64,10 +64,12 @@ html, body {
    STAGE 0: PASSCODE GATE
 ========================================= */
 #stage-lock {
-  background: radial-gradient(circle at 50% 45%, #151620 0%, #06070a 100%);
+  background: radial-gradient(circle at 50% 25%, #151620 0%, #06070a 100%);
   z-index: 100;
   position: relative;
   overflow: hidden;
+  justify-content: flex-start;
+  padding-top: max(8vh, 48px);
 }
 
 .meadow-canvas {
@@ -86,31 +88,31 @@ html, body {
   flex-direction: column;
   align-items: center;
   width: min(320px, 86vw);
-  padding: 2.2rem 1.8rem;
-  background: rgba(14, 16, 24, 0.72);
+  padding: 1.8rem 1.5rem;
+  background: rgba(14, 16, 24, 0.76);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 200, 122, 0.16);
   border-radius: 20px;
-  box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 0, 0, 0.5);
   transition: transform 0.4s ease;
 }
 
 .lock-icon {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: var(--accent-gold);
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
   text-shadow: 0 0 15px rgba(255, 200, 122, 0.5);
   animation: glowPulse 2.8s ease-in-out infinite;
 }
 
 .lock-prompt {
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-style: italic;
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
-  margin-bottom: 1.6rem;
+  margin-bottom: 1.25rem;
   letter-spacing: 0.04em;
 }
 
@@ -831,4 +833,19 @@ html, body {
   cursor: pointer;
   letter-spacing: 0.05em;
   padding: 0.5rem 1rem;
+}
+
+@media (max-width: 600px) {
+  #stage-lock {
+    padding-top: max(5vh, 32px);
+  }
+  .lock-card {
+    padding: 1.45rem 1.25rem;
+    border-radius: 18px;
+    width: min(310px, 88vw);
+  }
+  .lock-prompt {
+    font-size: 1.12rem;
+    margin-bottom: 1.05rem;
+  }
 }

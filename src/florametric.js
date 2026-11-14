@@ -178,6 +178,7 @@
     constructor(config = {}) {
       this.type = config.type || 'sunflower';
       this.maxHeight = config.height || 360;
+      this.scale = config.scale !== undefined ? config.scale : 1.0;
       this.userCurvature = config.curvature !== undefined ? config.curvature : 0.0;
       this.leafDensity = config.leafDensity !== undefined ? config.leafDensity : 1.0;
       this.branchingProp = config.branching !== undefined ? config.branching : 1.0;
@@ -730,7 +731,7 @@
 
           if (l.state !== 'dead') {
             const allometry = 0.72 + 0.55 * Math.sin(l.yRatio * Math.PI);
-            const scale = (l.baseScale !== undefined ? l.baseScale : ((l.scaleMod || 1.0) * allometry)) * maturity;
+            const scale = (l.baseScale !== undefined ? l.baseScale : ((l.scaleMod || 1.0) * allometry)) * maturity * (this.scale || 1.0);
             const leafObj = {
               id: l.id,
               y: nodeTargetY,
@@ -782,8 +783,8 @@
 
       // 4. Flower Scaling Modulated by Active Leaves Biomass
       const totalLeafEnergy = activeLeaves.reduce((acc, l) => acc + (l.scale !== undefined ? l.scale : 1.0), 0);
-      let flowerScale = (0.65 + totalLeafEnergy * 0.08) * this.geneticFlowerScaleMod;
-      flowerScale = clamp(flowerScale, 0.5, 1.45);
+      let flowerScale = (0.65 + totalLeafEnergy * 0.08) * this.geneticFlowerScaleMod * (this.scale || 1.0);
+      flowerScale = clamp(flowerScale, 0.3 * (this.scale || 1.0), 1.45 * (this.scale || 1.0));
 
       // Continuous Smooth Bud-to-Bloom & Member Subcycles
       let bloom = 0.0;
@@ -809,6 +810,7 @@
 
       return {
         type: this.type,
+        scale: this.scale || 1.0,
         age,
         growthAge,
         senescence,
@@ -836,6 +838,7 @@
     static generatePlantGlyphs(pData, originX, groundY, palette, seed = 42, time = 0, seedsBlown = false) {
       const glyphs = [];
       const pType = pData.type;
+      const pScale = pData.scale || 1.0;
       const nodes = pData.stemNodes;
       const shootH = pData.shootHeight;
       const leaves = pData.leaves;
@@ -843,6 +846,7 @@
       const fScale = pData.flowerScale;
       const bloom = pData.bloom;
       const age = pData.age;
+      const stemSize = Math.max(7, Math.round(14 * pScale));
 
       const cStem = pData.isWilting ? (palette.wilted || '#7c7332') : palette.stem;
       const cStemDark = pData.isWilting ? (palette.dead || '#4a3d1b') : palette.stemDark;
@@ -863,41 +867,45 @@
       // 1. STEM DRAWING (SPECIES-SPECIFIC)
       // -------------------------------------------------------------
       if (pType === 'sunflower') {
+        const spread = Math.max(2, Math.round(4 * pScale));
+        const spread2 = Math.max(1, Math.round(2 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
           const ch = (i % 5 === 0) ? "%" : ((i % 7 === 0) ? "#" : "|");
           if (n.y < shootH * 0.55) {
-            glyphs.push({ x: px - 4, y: py, char: "|", fg: cStem, size: 14 });
-            glyphs.push({ x: px, y: py, char: ch, fg: cStem, size: 14 });
-            glyphs.push({ x: px + 4, y: py, char: "|", fg: cStem, size: 14 });
+            glyphs.push({ x: px - spread, y: py, char: "|", fg: cStem, size: stemSize });
+            glyphs.push({ x: px, y: py, char: ch, fg: cStem, size: stemSize });
+            glyphs.push({ x: px + spread, y: py, char: "|", fg: cStem, size: stemSize });
           } else {
-            glyphs.push({ x: px - 2, y: py, char: "|", fg: cStem, size: 14 });
-            glyphs.push({ x: px + 2, y: py, char: ch, fg: cStem, size: 14 });
+            glyphs.push({ x: px - spread2, y: py, char: "|", fg: cStem, size: stemSize });
+            glyphs.push({ x: px + spread2, y: py, char: ch, fg: cStem, size: stemSize });
           }
         }
       } else if (pType === 'iris') {
+        const off = Math.max(2, Math.round(4 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
           const ch = (i > 8 && nodes[i].x > nodes[i - 4].x) ? "/" : ((i > 8 && nodes[i].x < nodes[i - 4].x) ? "\\" : "|");
-          glyphs.push({ x: px, y: py, char: ch, fg: cStem, size: 14 });
+          glyphs.push({ x: px, y: py, char: ch, fg: cStem, size: stemSize });
           if (i % 12 === 0 && i > 5 && i < nodes.length - 8) {
-            glyphs.push({ x: px - 4, y: py - 4, char: "(", fg: cStemDark, size: 13 });
-            glyphs.push({ x: px + 4, y: py - 4, char: ")", fg: cStemDark, size: 13 });
+            glyphs.push({ x: px - off, y: py - off, char: "(", fg: cStemDark, size: Math.max(7, Math.round(13 * pScale)) });
+            glyphs.push({ x: px + off, y: py - off, char: ")", fg: cStemDark, size: Math.max(7, Math.round(13 * pScale)) });
           }
         }
       } else if (pType === 'thistle') {
+        const off = Math.max(2, Math.round(5 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
-          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: 14 });
+          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: stemSize });
           if (i % 3 === 0) {
-            glyphs.push({ x: px - 5, y: py, char: "!", fg: cStem, size: 12 });
-            glyphs.push({ x: px + 5, y: py, char: "!", fg: cStem, size: 12 });
+            glyphs.push({ x: px - off, y: py, char: "!", fg: cStem, size: Math.max(7, Math.round(12 * pScale)) });
+            glyphs.push({ x: px + off, y: py, char: "!", fg: cStem, size: Math.max(7, Math.round(12 * pScale)) });
           }
         }
       } else if (pType === 'dandelion') {
@@ -905,56 +913,60 @@
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
-          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: 14 });
+          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: stemSize });
         }
       } else if (pType === 'rose') {
+        const thornOff = Math.max(3, Math.round(6 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
-          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: 14 });
+          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: stemSize });
           if (i % 7 === 0 && i > 3) {
             const thornSide = (i % 14 === 0) ? -1 : 1;
-            glyphs.push({ x: px + thornSide * 6, y: py, char: thornSide < 0 ? "<" : ">", fg: '#d23737', size: 13 });
+            glyphs.push({ x: px + thornSide * thornOff, y: py, char: thornSide < 0 ? "<" : ">", fg: '#d23737', size: Math.max(7, Math.round(13 * pScale)) });
           }
         }
       } else if (pType === 'tulip') {
+        const spread = Math.max(1, Math.round(2 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
-          glyphs.push({ x: px - 2, y: py, char: "|", fg: cStem, size: 14 });
-          glyphs.push({ x: px + 2, y: py, char: "|", fg: cStem, size: 14 });
+          glyphs.push({ x: px - spread, y: py, char: "|", fg: cStem, size: stemSize });
+          glyphs.push({ x: px + spread, y: py, char: "|", fg: cStem, size: stemSize });
         }
       } else if (pType === 'marigold') {
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
-          glyphs.push({ x: px, y: py, char: (i % 4 === 0 ? ":" : "|"), fg: cStem, size: 13 });
+          glyphs.push({ x: px, y: py, char: (i % 4 === 0 ? ":" : "|"), fg: cStem, size: Math.max(7, Math.round(13 * pScale)) });
         }
       } else if (pType === 'daffodil') {
+        const apexOff = Math.max(2, Math.round(4 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
-          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: 14 });
+          glyphs.push({ x: px, y: py, char: "|", fg: cStem, size: stemSize });
         }
         const apexX = originX + nodes[nodes.length - 1].x;
         const apexY = groundY - nodes[nodes.length - 1].y;
-        glyphs.push({ x: apexX - 4, y: apexY + 4, char: "(", fg: '#b49650', size: 13 });
-        glyphs.push({ x: apexX + 4, y: apexY + 4, char: ")", fg: '#b49650', size: 13 });
+        glyphs.push({ x: apexX - apexOff, y: apexY + apexOff, char: "(", fg: '#b49650', size: Math.max(7, Math.round(13 * pScale)) });
+        glyphs.push({ x: apexX + apexOff, y: apexY + apexOff, char: ")", fg: '#b49650', size: Math.max(7, Math.round(13 * pScale)) });
       } else {
+        const spread = Math.max(1, Math.round(3 * pScale));
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
           const px = originX + n.x;
           const py = groundY - n.y;
           const ch = (i % 6 === 0) ? "%" : ((i % 7 === 0) ? "+" : "|");
           if (n.y < shootH * 0.4) {
-            glyphs.push({ x: px - 3, y: py, char: "|", fg: cStem, size: 14 });
-            glyphs.push({ x: px + 3, y: py, char: ch, fg: cStem, size: 14 });
+            glyphs.push({ x: px - spread, y: py, char: "|", fg: cStem, size: stemSize });
+            glyphs.push({ x: px + spread, y: py, char: ch, fg: cStem, size: stemSize });
           } else {
-            glyphs.push({ x: px, y: py, char: ch, fg: cStem, size: 14 });
+            glyphs.push({ x: px, y: py, char: ch, fg: cStem, size: stemSize });
           }
         }
       }
@@ -2030,6 +2042,7 @@
       this.age = options.age !== undefined ? options.age : 1.0;
       this.bloom = options.bloom !== undefined ? options.bloom : null;
       this.height = options.height || 360;
+      this.scale = options.scale !== undefined ? options.scale : 1.0;
       this.curvature = options.curvature !== undefined ? options.curvature : 0.0;
       this.leafDensity = options.leafDensity !== undefined ? options.leafDensity : 1.0;
       this.branching = options.branching !== undefined ? options.branching : 1.0;
@@ -2043,6 +2056,7 @@
         type: this.type,
         seed: this.seed,
         height: this.height,
+        scale: this.scale,
         curvature: this.curvature,
         leafDensity: this.leafDensity,
         branching: this.branching
@@ -2156,7 +2170,7 @@
 
       // Fast single-pass character render without expensive per-glyph shadowBlur
       glyphs.forEach(g => {
-        ctx.font = `${Math.round(g.size)}px "Courier New", Consolas, monospace`;
+        ctx.font = `${Math.max(7, Math.round(g.size))}px "Courier New", Consolas, monospace`;
         ctx.fillStyle = g.fg;
         ctx.fillText(g.char, g.x, g.y);
       });
