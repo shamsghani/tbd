@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const polaroidScatterList = document.getElementById('polaroid-scatter-list');
 
   const modalHologram = document.getElementById('modal-hologram-zoom');
+  const hologramCard = document.getElementById('hologram-polaroid-card');
   const hologramViewport = document.getElementById('hologram-viewport');
   const hologramCaption = document.getElementById('hologram-caption');
   const hologramDate = document.getElementById('hologram-date');
@@ -40,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 3D Hologram Viewer for Polaroid Zoom
-  const hologramViewer = new HologramViewer(hologramViewport);
+  // 3D Gaussian Splat & Spatial Hologram Viewer for Polaroid Zoom
+  const hologramViewer = new HologramViewer(hologramViewport, hologramCard);
 
   // STAGE 1: TAP ENVELOPE / WAX SEAL
   const handleOpenEnvelope = () => {
@@ -134,6 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeHologramModal = () => {
     modalHologram.classList.remove('active');
+    if (hologramCard) {
+      hologramCard.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.92)';
+    }
   };
 
   modalHologram.addEventListener('click', (e) => {
