@@ -85,9 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Cryptographic Salted SHA-256 Hash Verification (SubtleCrypto with Pure JS fallback)
   const SALT = 'tehrim_2026_special_salt';
-  const TARGET_HASH = 'f7696fc1d8c8b7e08ee5574aa5c6d6eedb4790fcdd4706c3427856c2eb747de1';
+  const TARGET_HASH = 'f7696fc1d8c8b7e08ee5574aa5c6d6eedb4790fcdd4706c3427856c2eb747de1'; // 5000155 (date-gated)
+  const MASTER_HASH = '48385dbb8253ea8ff71cca8af4b5a1723aebe7ded3ae12e106902016e063039b'; // secret master bypass (skips countdown)
 
-  async function verifyPasscode(input) {
+  async function computeHash(input) {
     const normalized = `${SALT}:${input.trim().toLowerCase()}`;
 
     try {
@@ -95,13 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const msgBuffer = new TextEncoder().encode(normalized);
         const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex === TARGET_HASH;
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       }
     } catch (err) {
       console.warn('SubtleCrypto error, falling back to pure JS hash:', err);
     }
-    return fallbackSha256(normalized) === TARGET_HASH;
+    return fallbackSha256(normalized);
   }
 
   const lockInputView = document.getElementById('lock-input-view');
@@ -211,25 +211,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!val) return;
 
     try {
-      const isMatch = await verifyPasscode(val);
-      if (isMatch) {
+      const hash = await computeHash(val);
+
+      // Secret Master Passcode: Skips countdown and opens envelope directly anytime
+      if (hash === MASTER_HASH) {
+        unlockSite();
+        return;
+      }
+
+      // Standard Birthday Passcode: Checks date gate
+      if (hash === TARGET_HASH) {
         if (isUnlockedDate()) {
           unlockSite();
         } else {
           showCountdown();
         }
-      } else {
-        lockError.textContent = 'incorrect secret word';
-        lockCard.classList.remove('shake-anim');
-        void lockCard.offsetWidth; // re-trigger animation
-        lockCard.classList.add('shake-anim');
-        lockInput.value = '';
-        lockInput.focus();
+        return;
       }
+
+      // Neither matched
+      lockError.textContent = 'incorrect secret word';
+      lockCard.classList.remove('shake-anim');
+      void lockCard.offsetWidth; // re-trigger animation
+      lockCard.classList.add('shake-anim');
+      lockInput.value = '';
+      lockInput.focus();
     } catch (err) {
       console.error('Unlock verification error:', err);
-      // Even if an unexpected error occurs, attempt fallback directly
-      if (fallbackSha256(`${SALT}:${val.trim().toLowerCase()}`) === TARGET_HASH) {
+      const fallback = fallbackSha256(`${SALT}:${val.trim().toLowerCase()}`);
+      if (fallback === MASTER_HASH) {
+        unlockSite();
+      } else if (fallback === TARGET_HASH) {
         if (isUnlockedDate()) {
           unlockSite();
         } else {
