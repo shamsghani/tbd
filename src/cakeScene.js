@@ -11,8 +11,7 @@ export class CakeScene {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, this.width / this.height, 0.1, 50);
-    this.camera.position.set(0, 1.8, 3.8);
-    this.camera.lookAt(0, 0.6, 0);
+    this.updateCamera();
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -30,6 +29,16 @@ export class CakeScene {
 
     this.animate = this.animate.bind(this);
     this.animationId = requestAnimationFrame(this.animate);
+  }
+
+  updateCamera() {
+    const aspect = this.width / this.height;
+    this.camera.aspect = aspect;
+    // On portrait screens (aspect < 1), position camera back so the cake & stand never clip horizontally
+    const dist = aspect < 1 ? Math.min(5.2, (4.2 / Math.max(aspect, 0.65)) * 0.94) : 4.4;
+    this.camera.position.set(0, 0.65 + dist * 0.28, dist);
+    this.camera.lookAt(0, 0.62, 0);
+    this.camera.updateProjectionMatrix();
   }
 
   initLights() {
@@ -58,7 +67,7 @@ export class CakeScene {
     this.cakeGroup = new THREE.Group();
 
     // 1. Ceramic Gold Plate / Stand
-    const plateGeo = new THREE.CylinderGeometry(1.4, 1.2, 0.08, 48);
+    const plateGeo = new THREE.CylinderGeometry(1.22, 1.1, 0.08, 48);
     const plateMat = new THREE.MeshStandardMaterial({
       color: 0xe5c38c,
       roughness: 0.25,
@@ -281,8 +290,7 @@ export class CakeScene {
     window.addEventListener('resize', () => {
       this.width = this.container.clientWidth;
       this.height = this.container.clientHeight;
-      this.camera.aspect = this.width / this.height;
-      this.camera.updateProjectionMatrix();
+      this.updateCamera();
       this.renderer.setSize(this.width, this.height);
     });
   }

@@ -503,9 +503,13 @@ html, body {
 }
 
 .cake-canvas-wrap {
-  width: min(380px, 95vw);
-  height: min(420px, 55vh);
+  width: 100vw;
+  max-width: 440px;
+  height: min(440px, 58vh);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cake-whisper {
