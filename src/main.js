@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const envelopeTrigger = document.getElementById('envelope-trigger');
   const waxSeal = document.getElementById('wax-seal');
 
-  // Cryptographic Salted Hash Verification for "lmeyp"
+  // Cryptographic Salted SHA-256 Hash Verification
   async function verifyPasscode(input) {
     const salt = 'tehrim_2026_special_salt';
     const targetHash = '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e';
