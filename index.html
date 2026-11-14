@@ -14,7 +14,7 @@
     <div class="lock-card" id="lock-card">
       <div class="lock-icon">✦</div>
       <p class="lock-prompt">enter the secret word to enter</p>
-      <form id="lock-form" class="lock-form" onsubmit="return false;">
+      <form id="lock-form" class="lock-form" action="#">
         <div class="lock-input-wrap">
           <input 
             type="password" 
@@ -27,7 +27,7 @@
             spellcheck="false"
             required
           />
-          <button type="submit" id="btn-unlock" class="lock-submit-btn" aria-label="Unlock">➔</button>
+          <button type="button" id="btn-unlock" class="lock-submit-btn" aria-label="Unlock">➔</button>
         </div>
       </form>
       <p id="lock-error" class="lock-error"></p>

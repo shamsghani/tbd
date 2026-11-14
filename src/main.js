@@ -11,21 +11,96 @@ document.addEventListener('DOMContentLoaded', () => {
   const lockInput = document.getElementById('lock-input');
   const lockError = document.getElementById('lock-error');
   const lockCard = document.getElementById('lock-card');
+  const btnUnlock = document.getElementById('btn-unlock');
 
   const stageEnvelope = document.getElementById('stage-envelope');
   const envelopeTrigger = document.getElementById('envelope-trigger');
   const waxSeal = document.getElementById('wax-seal');
 
-  // Cryptographic Salted SHA-256 Hash Verification
+  // Pure JavaScript SHA-256 fallback (ensures offline / non-HTTPS mobile reliability)
+  function fallbackSha256(ascii) {
+    function rightRotate(value, amount) {
+      return (value >>> amount) | (value << (32 - amount));
+    }
+    const mathPow = Math.pow;
+    const maxWord = mathPow(2, 32);
+    let result = '';
+    const words = [];
+    const asciiBitLength = ascii.length * 8;
+    let hash = [];
+    const k = [];
+    let primeCounter = 0;
+    const isComposite = {};
+    for (let candidate = 2; primeCounter < 64; candidate++) {
+      if (!isComposite[candidate]) {
+        for (let i = 0; i < 313; i += candidate) {
+          isComposite[i] = candidate;
+        }
+        hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+        k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+      }
+    }
+    ascii += '\x80';
+    while (ascii.length % 64 - 56) ascii += '\x00';
+    for (let i = 0; i < ascii.length; i++) {
+      const j = ascii.charCodeAt(i);
+      words[i >> 2] |= j << ((3 - i) % 4) * 8;
+    }
+    words[words.length] = ((asciiBitLength / maxWord) | 0);
+    words[words.length] = (asciiBitLength) | 0;
+    for (let j = 0; j < words.length;) {
+      const w = words.slice(j, j += 16);
+      const oldHash = [...hash];
+      for (let i = 0; i < 64; i++) {
+        const w15 = w[i - 15], w2 = w[i - 2];
+        const a = hash[0], e = hash[4];
+        const temp1 = hash[7]
+          + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+          + ((e & hash[5]) ^ ((~e) & hash[6]))
+          + k[i]
+          + (w[i] = (i < 16) ? w[i] : (
+              w[i - 16]
+              + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+              + w[i - 7]
+              + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+            ) | 0
+          );
+        const temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+          + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+        hash = [(temp1 + temp2) | 0].concat(hash.slice(0, 7));
+        hash[4] = (hash[4] + temp1) | 0;
+      }
+      for (let i = 0; i < 8; i++) {
+        hash[i] = (hash[i] + oldHash[i]) | 0;
+      }
+    }
+    for (let i = 0; i < 8; i++) {
+      for (let i2 = 3; i2 >= 0; i2--) {
+        const c = (hash[i] >> (i2 * 8)) & 255;
+        result += ((c < 16) ? '0' : '') + c.toString(16);
+      }
+    }
+    return result;
+  }
+
+  // Cryptographic Salted SHA-256 Hash Verification (SubtleCrypto with Pure JS fallback)
   async function verifyPasscode(input) {
     const salt = 'tehrim_2026_special_salt';
     const targetHash = '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e';
     const normalized = `${salt}:${input.trim().toLowerCase()}`;
-    const msgBuffer = new TextEncoder().encode(normalized);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex === targetHash;
+
+    try {
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === 'function') {
+        const msgBuffer = new TextEncoder().encode(normalized);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex === targetHash;
+      }
+    } catch (err) {
+      console.warn('SubtleCrypto error, falling back to pure JS hash:', err);
+    }
+    return fallbackSha256(normalized) === targetHash;
   }
 
   const unlockSite = () => {
@@ -41,24 +116,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const handleUnlockAttempt = async (e) => {
-    if (e) e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     const val = lockInput.value;
     if (!val) return;
 
-    const isMatch = await verifyPasscode(val);
-    if (isMatch) {
-      unlockSite();
-    } else {
-      lockError.textContent = 'incorrect secret word';
-      lockCard.classList.remove('shake-anim');
-      void lockCard.offsetWidth; // re-trigger animation
-      lockCard.classList.add('shake-anim');
-      lockInput.value = '';
-      lockInput.focus();
+    try {
+      const isMatch = await verifyPasscode(val);
+      if (isMatch) {
+        unlockSite();
+      } else {
+        lockError.textContent = 'incorrect secret word';
+        lockCard.classList.remove('shake-anim');
+        void lockCard.offsetWidth; // re-trigger animation
+        lockCard.classList.add('shake-anim');
+        lockInput.value = '';
+        lockInput.focus();
+      }
+    } catch (err) {
+      console.error('Unlock verification error:', err);
+      // Even if an unexpected error occurs, attempt fallback directly
+      if (fallbackSha256(`tehrim_2026_special_salt:${val.trim().toLowerCase()}`) === '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e') {
+        unlockSite();
+      }
     }
   };
 
-  lockForm.addEventListener('submit', handleUnlockAttempt);
+  if (lockForm) {
+    lockForm.addEventListener('submit', handleUnlockAttempt);
+  }
+  if (btnUnlock) {
+    btnUnlock.addEventListener('click', handleUnlockAttempt);
+    btnUnlock.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleUnlockAttempt(e);
+    });
+  }
+  if (lockInput) {
+    lockInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleUnlockAttempt(e);
+      }
+    });
+  }
 
   const stageLetter = document.getElementById('stage-letter');
   const btnCloseLetter = document.getElementById('btn-close-letter');
