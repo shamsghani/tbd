@@ -49,7 +49,12 @@ html, body {
   z-index: 10;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .stage.hidden {
+  display: flex !important;
   opacity: 0;
   pointer-events: none;
   transform: scale(0.97);

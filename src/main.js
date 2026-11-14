@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
     countdownInterval = setInterval(update, 1000);
   };
 
+  // Pre-calculate countdown values immediately
+  startCountdownTimer();
+
   const showCountdown = () => {
     sessionStorage.setItem('tehrim_auth', 'true');
     if (lockInputView) lockInputView.classList.add('hidden');
