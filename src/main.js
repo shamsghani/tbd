@@ -177,9 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="clothespin"></div>
         <div class="polaroid-frame">
           <div class="polaroid-photo-wrap">
-            <img src="${mem.photo}" alt="${mem.title}" loading="lazy">
+            <img src="${mem.photo}" alt="${mem.date}" loading="lazy">
           </div>
-          <div class="polaroid-caption">${mem.title}</div>
           <div class="polaroid-date">${mem.date}</div>
         </div>
       `;
@@ -197,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // STAGE 5: OPEN HOLOGRAPHIC 3D ZOOM MODAL
   const openHologramModal = (mem) => {
-    hologramCaption.textContent = mem.title;
     hologramDate.textContent = mem.date;
     hologramViewer.loadMemory(mem.photo, mem.depth);
     modalHologram.classList.add('active');
