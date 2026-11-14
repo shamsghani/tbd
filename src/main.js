@@ -84,10 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Cryptographic Salted SHA-256 Hash Verification (SubtleCrypto with Pure JS fallback)
+  const SALT = 'tehrim_2026_special_salt';
+  const TARGET_HASH = 'f7696fc1d8c8b7e08ee5574aa5c6d6eedb4790fcdd4706c3427856c2eb747de1';
+
   async function verifyPasscode(input) {
-    const salt = 'tehrim_2026_special_salt';
-    const targetHash = '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e';
-    const normalized = `${salt}:${input.trim().toLowerCase()}`;
+    const normalized = `${SALT}:${input.trim().toLowerCase()}`;
 
     try {
       if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === 'function') {
@@ -95,17 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex === targetHash;
+        return hashHex === TARGET_HASH;
       }
     } catch (err) {
       console.warn('SubtleCrypto error, falling back to pure JS hash:', err);
     }
-    return fallbackSha256(normalized) === targetHash;
+    return fallbackSha256(normalized) === TARGET_HASH;
   }
 
   const lockInputView = document.getElementById('lock-input-view');
   const lockCountdownView = document.getElementById('lock-countdown-view');
-  const lockSubhint = document.getElementById('lock-subhint');
   const lockStarIcon = document.getElementById('lock-star-icon');
 
   const cdDays = document.getElementById('cd-days');
@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const cdMins = document.getElementById('cd-mins');
   const cdSecs = document.getElementById('cd-secs');
 
-  // Date Check: Unlocks November 21st, 2026 (midnight local time)
-  const UNLOCK_DATE = new Date(2026, 10, 21, 0, 0, 0);
+  // Date Check: Unlocks November 22nd, 2026 (midnight local time)
+  const UNLOCK_DATE = new Date(2026, 10, 22, 0, 0, 0);
 
   // Hidden override / preview mode (?preview=true or triple-tap the ✦ star)
   let previewBypass = false;
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Unlock verification error:', err);
       // Even if an unexpected error occurs, attempt fallback directly
-      if (fallbackSha256(`tehrim_2026_special_salt:${val.trim().toLowerCase()}`) === '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e') {
+      if (fallbackSha256(`${SALT}:${val.trim().toLowerCase()}`) === TARGET_HASH) {
         if (isUnlockedDate()) {
           unlockSite();
         } else {
