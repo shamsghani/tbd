@@ -53,3 +53,4 @@ if os.path.exists(out_montage):
     print(f'Montage created successfully! Size: {os.path.getsize(out_montage)/(1024*1024):.2f} MB')
 else:
     print('Failed:', res.stderr[:400])
+

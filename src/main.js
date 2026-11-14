@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cakeCanvas = document.getElementById('cake-canvas');
 
   const stagePolaroids = document.getElementById('stage-polaroids');
-  const polaroidScatterList = document.getElementById('polaroid-scatter-list');
+  const fairyWall = document.getElementById('fairy-wall');
 
   const modalHologram = document.getElementById('modal-hologram-zoom');
   const hologramCard = document.getElementById('hologram-polaroid-card');
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3D Gaussian Splat & Spatial Hologram Viewer for Polaroid Zoom
   const hologramViewer = new HologramViewer(hologramViewport, hologramCard);
 
-  // STAGE 1: TAP ENVELOPE / WAX SEAL
+  // STAGE 1: TAP WAX SEAL / ENVELOPE
   const handleOpenEnvelope = () => {
     startMusic();
 
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 400);
   });
 
-  // STAGE 3: BLOW OUT CANDLE -> CAKE FADES -> POLAROID SCATTER
+  // STAGE 3: BLOW OUT CANDLE -> CAKE FADES -> FAIRY LIGHT POLAROID WALL
   const handleCandleBlowOut = () => {
     fireGrandCelebration();
     setTimeout(() => fireSideCannons(), 300);
@@ -101,31 +101,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1900);
   };
 
-  // STAGE 4: BUILD SCATTERED POLAROID GRID
-  const rotations = [-4, 3, -2, 5, -3];
+  // STAGE 4: BUILD FAIRY LIGHT CLOTHESLINE WALL (3 STRINGS, 15 POLAROIDS)
+  const rows = [
+    MEMORIES.slice(0, 5),
+    MEMORIES.slice(5, 10),
+    MEMORIES.slice(10, 15)
+  ];
 
-  MEMORIES.forEach((mem, index) => {
-    const item = document.createElement('div');
-    item.className = 'scatter-item';
-    const rot = rotations[index % rotations.length];
-    item.style.setProperty('--rot', `${rot}deg`);
+  const tilts = [-3.5, 2.5, -2, 3.2, -2.8];
 
-    item.innerHTML = `
-      <div class="scatter-photo-wrap">
-        <img src="${mem.photo}" alt="${mem.title}" loading="lazy">
-      </div>
-      <div class="scatter-caption">${mem.title}</div>
-      <div class="scatter-date">${mem.date}</div>
-    `;
+  rows.forEach((rowMemories, rIndex) => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'fairy-string-row';
 
-    item.addEventListener('click', () => {
-      openHologramModal(mem);
+    // Glowing string wire
+    const wireEl = document.createElement('div');
+    wireEl.className = 'fairy-wire-line';
+    rowEl.appendChild(wireEl);
+
+    // Glowing light bulbs
+    const bulbsEl = document.createElement('div');
+    bulbsEl.className = 'fairy-bulbs-container';
+    for (let b = 0; b < 8; b++) {
+      const bulb = document.createElement('div');
+      bulb.className = 'fairy-bulb';
+      bulbsEl.appendChild(bulb);
+    }
+    rowEl.appendChild(bulbsEl);
+
+    // Track of polaroids clipped with clothespins
+    const trackEl = document.createElement('div');
+    trackEl.className = 'hanging-polaroids-track';
+
+    rowMemories.forEach((mem, mIndex) => {
+      const item = document.createElement('div');
+      item.className = 'hanging-polaroid';
+      const rot = tilts[(rIndex * 2 + mIndex) % tilts.length];
+      item.style.setProperty('--rot', `${rot}deg`);
+
+      item.innerHTML = `
+        <div class="clothespin"></div>
+        <div class="polaroid-frame">
+          <div class="polaroid-photo-wrap">
+            <img src="${mem.photo}" alt="${mem.title}" loading="lazy">
+          </div>
+          <div class="polaroid-caption">${mem.title}</div>
+          <div class="polaroid-date">${mem.date}</div>
+        </div>
+      `;
+
+      item.addEventListener('click', () => {
+        openHologramModal(mem);
+      });
+
+      trackEl.appendChild(item);
     });
 
-    polaroidScatterList.appendChild(item);
+    rowEl.appendChild(trackEl);
+    fairyWall.appendChild(rowEl);
   });
 
-  // STAGE 5: OPEN HOLOGRAPHIC ZOOM MODAL
+  // STAGE 5: OPEN HOLOGRAPHIC 3D ZOOM MODAL
   const openHologramModal = (mem) => {
     hologramCaption.textContent = mem.title;
     hologramDate.textContent = mem.date;

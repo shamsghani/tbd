@@ -1,14 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
 
 :root {
-  --bg-deep: #06070a;
+  --bg-deep: #08090d;
   --bg-paper: #fcf9f2;
   --text-dark: #2a221f;
   --text-light: #f5f5f7;
   --accent-gold: #e5c38c;
   --accent-crimson: #a31d36;
-  --envelope-body: #1c1a24;
-  --envelope-flap: #24222f;
+  
+  /* Paper-colored Kraft Envelope */
+  --envelope-body: #ebdcc0;
+  --envelope-pocket: #dfcfaf;
+  --envelope-flap: #e4d4b6;
+  --envelope-shadow: rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -52,10 +56,10 @@ html, body {
 }
 
 /* =========================================
-   STAGE 1: FULLSCREEN ENVELOPE
+   STAGE 1: PAPER-COLORED ENVELOPE
 ========================================= */
 #stage-envelope {
-  background: radial-gradient(circle at 50% 40%, #171520 0%, #08070c 100%);
+  background: radial-gradient(circle at 50% 45%, #181920 0%, #08090d 100%);
   z-index: 50;
 }
 
@@ -65,27 +69,31 @@ html, body {
   height: 240px;
   perspective: 1200px;
   cursor: pointer;
+  filter: drop-shadow(0 25px 45px rgba(0,0,0,0.6));
 }
 
 .envelope-back {
   position: absolute;
   inset: 0;
   background: var(--envelope-body);
+  background-image: 
+    radial-gradient(#d8c7a7 1px, transparent 1px),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  background-size: 16px 16px, 100% 100%;
   border-radius: 12px;
-  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(163, 29, 54, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(160, 130, 90, 0.3);
 }
 
 /* Paper letter peeking inside */
 .envelope-letter-peek {
   position: absolute;
   top: 15px;
-  left: 20px;
-  right: 20px;
+  left: 18px;
+  right: 18px;
   height: 200px;
   background: var(--bg-paper);
   border-radius: 6px;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.06);
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.06);
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -94,18 +102,19 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: 3;
-  clip-path: polygon(0% 100%, 50% 45%, 100% 100%);
-  background: #191722;
+  clip-path: polygon(0% 100%, 50% 46%, 100% 100%);
+  background: var(--envelope-pocket);
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
 }
 
 .envelope-side-left {
   position: absolute;
   inset: 0;
   z-index: 2;
-  clip-path: polygon(0% 0%, 0% 100%, 55% 55%);
-  background: #14131c;
+  clip-path: polygon(0% 0%, 0% 100%, 54% 54%);
+  background: #dbcbab;
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
@@ -114,8 +123,8 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: 2;
-  clip-path: polygon(100% 0%, 100% 100%, 45% 55%);
-  background: #14131c;
+  clip-path: polygon(100% 0%, 100% 100%, 46% 54%);
+  background: #dbcbab;
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
 }
@@ -134,6 +143,7 @@ html, body {
   z-index: 4;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.15));
 }
 
 .envelope-wrapper.open .envelope-flap {
@@ -141,18 +151,18 @@ html, body {
   z-index: 1;
 }
 
-/* Realistic Wax Seal */
+/* Realistic Red Wax Seal on Paper Envelope */
 .wax-seal {
   position: absolute;
   top: 95px;
   left: 50%;
   transform: translateX(-50%);
-  width: 64px;
-  height: 64px;
+  width: 66px;
+  height: 66px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #d12d4d, #7c0e22);
-  border: 2px solid #e04362;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+  background: radial-gradient(circle at 35% 35%, #d6284a, #7a0e22);
+  border: 2px solid #e03b5d;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), inset 0 2px 5px rgba(255, 255, 255, 0.45);
   z-index: 6;
   display: flex;
   align-items: center;
@@ -168,7 +178,7 @@ html, body {
 
 .wax-seal span {
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 700;
   color: #ffe6ec;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -186,7 +196,7 @@ html, body {
 
 @keyframes sealPulse {
   0%, 100% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.04); box-shadow: 0 12px 30px rgba(209, 45, 77, 0.4); }
+  50% { transform: translateX(-50%) scale(1.04); box-shadow: 0 12px 30px rgba(214, 40, 74, 0.4); }
 }
 
 /* =========================================
@@ -265,7 +275,6 @@ html, body {
   z-index: 30;
 }
 
-/* Video montage playing softly in the dark */
 .cake-bg-video-wrap {
   position: absolute;
   inset: 0;
@@ -330,89 +339,200 @@ html, body {
 }
 
 /* =========================================
-   STAGE 4: SCATTERED POLAROID GRID
+   STAGE 4: FAIRY LIGHT CLOTHESLINE WALL
 ========================================= */
 #stage-polaroids {
   position: relative;
   min-height: 100dvh;
   width: 100vw;
-  background: #050608;
+  background: #0d0f15;
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(255, 200, 122, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(255, 117, 143, 0.06) 0%, transparent 50%);
   z-index: 20;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 3rem 1.2rem 6rem;
+  padding: 2.5rem 0.5rem 6rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.fairy-wall-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
 }
 
 .polaroid-grid-intro {
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.05em;
-  margin-bottom: 2.5rem;
-  text-align: center;
 }
 
-.polaroid-scatter-flow {
+.fairy-wall-container {
   width: 100%;
-  max-width: 480px;
+  max-width: 900px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2.2rem;
+  gap: 3.5rem;
+  padding-bottom: 2rem;
 }
 
-.scatter-item {
-  width: min(290px, 82vw);
-  background: #fbfbf9;
-  border-radius: 4px;
-  padding: 12px 12px 28px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.4);
+/* Hanging Fairy String Row */
+.fairy-string-row {
+  position: relative;
+  width: 100%;
+  padding-top: 25px;
+}
+
+/* Curved illuminated wire */
+.fairy-wire-line {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  border-bottom: 1.5px solid rgba(255, 230, 170, 0.5);
+  border-radius: 50% / 100%;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  pointer-events: none;
+  box-shadow: 0 1px 8px rgba(255, 215, 120, 0.3);
+}
+
+/* Bulbs along the string */
+.fairy-bulbs-container {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 4%;
+}
+
+.fairy-bulb {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff8e7;
+  box-shadow: 0 0 10px 4px rgba(255, 213, 79, 0.75), 0 0 20px 8px rgba(255, 183, 77, 0.35);
+  animation: bulbTwinkle 2.5s ease-in-out infinite alternate;
+}
+
+.fairy-bulb:nth-child(even) {
+  animation-duration: 3.2s;
+  animation-delay: 0.7s;
+}
+
+@keyframes bulbTwinkle {
+  0% { opacity: 0.7; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 14px 6px rgba(255, 213, 79, 0.9); }
+}
+
+/* Horizontal scrolling track of hanging polaroids */
+.hanging-polaroids-track {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 15px 1.5rem 25px;
+  scrollbar-width: none; /* Hide scrollbar for clean aesthetic */
+  -webkit-overflow-scrolling: touch;
+}
+
+.hanging-polaroids-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Hanging Polaroid with Clothespin */
+.hanging-polaroid {
+  position: relative;
+  flex: 0 0 160px;
   cursor: pointer;
+  transform-origin: top center;
   transform: rotate(var(--rot, 0deg));
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
 }
 
-.scatter-item:hover, .scatter-item:active {
-  transform: scale(1.03) rotate(0deg) !important;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.85);
+.hanging-polaroid:hover, .hanging-polaroid:active {
+  transform: scale(1.06) rotate(0deg) !important;
   z-index: 10;
 }
 
-.scatter-photo-wrap {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  background: #1a1a1a;
+/* Wooden Clothespin / Peg */
+.clothespin {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 22px;
+  background: linear-gradient(90deg, #aa7844, #cca068 45%, #966734);
   border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55);
+  z-index: 6;
 }
 
-.scatter-photo-wrap img {
+.clothespin::after {
+  content: '';
+  position: absolute;
+  top: 9px;
+  left: -1px;
+  right: -1px;
+  height: 3px;
+  background: #6a737d; /* tiny metal spring clip */
+  border-radius: 1px;
+}
+
+/* Polaroid Card Body */
+.polaroid-frame {
+  background: #ffffff;
+  border-radius: 3px;
+  padding: 8px 8px 18px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), 0 1px 4px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.polaroid-photo-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #18191e;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.polaroid-photo-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.scatter-caption {
+.polaroid-caption {
   font-family: 'Caveat', cursive;
-  font-size: 1.35rem;
-  color: #1f2229;
+  font-size: 1.15rem;
+  color: #1a1c22;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.scatter-date {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.7rem;
+.polaroid-date {
+  font-size: 0.62rem;
   color: #8c9099;
   text-align: center;
-  margin-top: 4px;
-  letter-spacing: 0.05em;
+  margin-top: 3px;
+  letter-spacing: 0.04em;
 }
 
 /* =========================================
@@ -451,15 +571,15 @@ html, body {
   flex-direction: column;
   align-items: center;
   position: relative;
-  transform: scale(0.92);
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.92);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  transform-style: preserve-3d;
 }
 
 #modal-hologram-zoom.active .hologram-polaroid-frame {
-  transform: scale(1);
+  transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(1);
 }
 
-/* Inside the polaroid: WebGL Holographic Parallax Container */
 .hologram-viewport {
   width: 100%;
   aspect-ratio: 4 / 5;

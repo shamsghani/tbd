@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <!-- STAGE 1: FULLSCREEN WAX SEAL ENVELOPE -->
+  <!-- STAGE 1: PAPER-COLORED WAX SEAL ENVELOPE -->
   <section id="stage-envelope" class="stage">
     <div class="envelope-wrapper" id="envelope-trigger">
       <div class="envelope-back"></div>
@@ -54,11 +54,13 @@ Your Friend ✨</div>
     </div>
   </section>
 
-  <!-- STAGE 4: SCATTERED POLAROID GRID -->
+  <!-- STAGE 4: FAIRY LIGHT CLOTHESLINE POLAROID WALL -->
   <section id="stage-polaroids" class="stage hidden">
-    <p class="polaroid-grid-intro">tap a memory to step inside</p>
-    <div class="polaroid-scatter-flow" id="polaroid-scatter-list">
-      <!-- Populated dynamically by main.js -->
+    <div class="fairy-wall-header">
+      <p class="polaroid-grid-intro">tap any memory to step inside</p>
+    </div>
+    <div class="fairy-wall-container" id="fairy-wall">
+      <!-- 3 Fairy strings populated dynamically by main.js -->
     </div>
   </section>
 
@@ -66,10 +68,10 @@ Your Friend ✨</div>
   <div id="modal-hologram-zoom">
     <div class="hologram-polaroid-frame" id="hologram-polaroid-card">
       <div class="hologram-viewport" id="hologram-viewport">
-        <!-- Three.js Hologram canvas rendered here -->
+        <!-- Three.js Gaussian Splat canvas rendered here -->
       </div>
-      <div class="hologram-caption" id="hologram-caption">Under the Fairy Lights</div>
-      <div class="hologram-date" id="hologram-date">November 2026</div>
+      <div class="hologram-caption" id="hologram-caption">Warm Evenings</div>
+      <div class="hologram-date" id="hologram-date">Nov 2026</div>
     </div>
     <div class="hologram-close-hint" id="btn-close-hologram">
       tap anywhere to return
