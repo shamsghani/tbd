@@ -103,6 +103,91 @@ document.addEventListener('DOMContentLoaded', () => {
     return fallbackSha256(normalized) === targetHash;
   }
 
+  const lockInputView = document.getElementById('lock-input-view');
+  const lockCountdownView = document.getElementById('lock-countdown-view');
+  const lockSubhint = document.getElementById('lock-subhint');
+  const lockStarIcon = document.getElementById('lock-star-icon');
+
+  const cdDays = document.getElementById('cd-days');
+  const cdHours = document.getElementById('cd-hours');
+  const cdMins = document.getElementById('cd-mins');
+  const cdSecs = document.getElementById('cd-secs');
+
+  // Date Check: Unlocks November 21st, 2026 (midnight local time)
+  const UNLOCK_DATE = new Date(2026, 10, 21, 0, 0, 0);
+
+  // Hidden override / preview mode (?preview=true or triple-tap the ✦ star)
+  let previewBypass = false;
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('preview') || urlParams.has('test') || urlParams.has('override')) {
+    previewBypass = true;
+  }
+
+  const isUnlockedDate = () => {
+    if (previewBypass) return true;
+    const now = new Date();
+    return now >= UNLOCK_DATE;
+  };
+
+  let countdownInterval = null;
+  const startCountdownTimer = () => {
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    const update = () => {
+      const now = new Date();
+      const diff = UNLOCK_DATE - now;
+
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        unlockSite();
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      if (cdDays) cdDays.textContent = String(days).padStart(2, '0');
+      if (cdHours) cdHours.textContent = String(hours).padStart(2, '0');
+      if (cdMins) cdMins.textContent = String(mins).padStart(2, '0');
+      if (cdSecs) cdSecs.textContent = String(secs).padStart(2, '0');
+    };
+
+    update();
+    countdownInterval = setInterval(update, 1000);
+  };
+
+  const showCountdown = () => {
+    sessionStorage.setItem('tehrim_auth', 'true');
+    if (lockInputView) lockInputView.classList.add('hidden');
+    if (lockCountdownView) lockCountdownView.classList.remove('hidden');
+    startCountdownTimer();
+  };
+
+  // Triple-tap ✦ star bypass for testing on any device
+  let starTaps = 0;
+  let starTimer = null;
+  if (lockStarIcon) {
+    lockStarIcon.style.cursor = 'pointer';
+    lockStarIcon.addEventListener('click', () => {
+      starTaps++;
+      clearTimeout(starTimer);
+      if (starTaps >= 3) {
+        previewBypass = true;
+        if (lockSubhint) {
+          lockSubhint.textContent = 'preview mode active ✨';
+          lockSubhint.style.color = '#ffc87a';
+        }
+        if (sessionStorage.getItem('tehrim_auth') === 'true') {
+          unlockSite();
+        }
+      } else {
+        starTimer = setTimeout(() => { starTaps = 0; }, 1000);
+      }
+    });
+  }
+
   const unlockSite = () => {
     sessionStorage.setItem('tehrim_auth', 'true');
     stageLock.classList.add('hidden');
@@ -111,8 +196,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check if already authenticated during this session
   if (sessionStorage.getItem('tehrim_auth') === 'true') {
-    stageLock.classList.add('hidden');
-    stageEnvelope.classList.remove('hidden');
+    if (isUnlockedDate()) {
+      stageLock.classList.add('hidden');
+      stageEnvelope.classList.remove('hidden');
+    } else {
+      showCountdown();
+    }
   }
 
   const handleUnlockAttempt = async (e) => {
@@ -123,7 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const isMatch = await verifyPasscode(val);
       if (isMatch) {
-        unlockSite();
+        if (isUnlockedDate()) {
+          unlockSite();
+        } else {
+          showCountdown();
+        }
       } else {
         lockError.textContent = 'incorrect secret word';
         lockCard.classList.remove('shake-anim');
@@ -136,7 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Unlock verification error:', err);
       // Even if an unexpected error occurs, attempt fallback directly
       if (fallbackSha256(`tehrim_2026_special_salt:${val.trim().toLowerCase()}`) === '6611940ee27f85634476aa1e80b16ea22685e84271cd4b27deeb000a61e3e43e') {
-        unlockSite();
+        if (isUnlockedDate()) {
+          unlockSite();
+        } else {
+          showCountdown();
+        }
       }
     }
   };
