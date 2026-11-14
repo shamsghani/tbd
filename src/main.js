@@ -178,10 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(starTimer);
       if (starTaps >= 3) {
         previewBypass = true;
-        if (lockSubhint) {
-          lockSubhint.textContent = 'preview mode active ✨';
-          lockSubhint.style.color = '#ffc87a';
-        }
+        lockStarIcon.style.color = '#ff758f';
+        lockStarIcon.style.transform = 'scale(1.25)';
         if (sessionStorage.getItem('tehrim_auth') === 'true') {
           unlockSite();
         }
