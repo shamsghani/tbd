@@ -80,3 +80,4 @@ for pid, src_path, caption, date in photo_list:
     print(f"Saved {pid}")
 
 print("All 15 photos and depths completed!")
+

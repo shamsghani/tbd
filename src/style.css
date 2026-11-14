@@ -379,34 +379,46 @@ html, body {
 }
 
 /* =========================================
-   STAGE 3: BLACKOUT & 3D CAKE REVEAL
+   PERSISTENT BACKGROUND VIDEO MONTAGE
 ========================================= */
-#stage-cake {
-  background-color: #030406;
-  z-index: 30;
-}
-
-.cake-bg-video-wrap {
-  position: absolute;
+.bg-video-wrap {
+  position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   overflow: hidden;
   pointer-events: none;
-  z-index: 1;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 1.2s ease;
 }
 
-.cake-bg-video {
+.bg-video-wrap.active {
+  opacity: 1;
+}
+
+.bg-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.22;
-  filter: blur(1.5px) saturate(1.2);
-  transform: scale(1.05);
+  opacity: 0.78;
+  filter: saturate(1.15) brightness(0.95);
+  transform: scale(1.02);
 }
 
-.cake-bg-overlay {
+.bg-video-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(3,4,6,0.3) 0%, #030406 85%);
+  background: radial-gradient(circle at 50% 45%, rgba(6, 8, 12, 0.12) 0%, rgba(6, 8, 12, 0.52) 100%);
+  pointer-events: none;
+}
+
+/* =========================================
+   STAGE 3: 3D CAKE REVEAL
+========================================= */
+#stage-cake {
+  background: transparent;
+  z-index: 15;
 }
 
 .cake-centerpiece {
@@ -459,11 +471,11 @@ html, body {
   width: 100%;
   min-height: 100vh;
   height: auto;
-  background: #0d0f15;
+  background: rgba(8, 10, 16, 0.38);
   background-image: 
-    radial-gradient(circle at 50% 15%, rgba(255, 200, 122, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 20% 80%, rgba(255, 117, 143, 0.06) 0%, transparent 50%);
-  z-index: 20;
+    radial-gradient(circle at 50% 15%, rgba(255, 200, 122, 0.06) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(255, 117, 143, 0.04) 0%, transparent 50%);
+  z-index: 15;
   overflow-y: visible;
   overflow-x: hidden;
   padding: 3rem 0.5rem 8rem;

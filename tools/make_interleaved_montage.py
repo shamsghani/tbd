@@ -61,3 +61,4 @@ subprocess.run(concat_cmd, capture_output=True)
 
 if os.path.exists(out_montage):
     print(f"New montage created! Size: {os.path.getsize(out_montage)/(1024*1024):.2f} MB")
+

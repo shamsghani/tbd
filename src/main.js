@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseLetter = document.getElementById('btn-close-letter');
 
   const stageCake = document.getElementById('stage-cake');
+  const bgVideoWrap = document.getElementById('bg-video-wrap');
   const cakeMontageVideo = document.getElementById('cake-montage-video');
   const cakeCenterpiece = document.getElementById('cake-centerpiece');
   const cakeCanvas = document.getElementById('cake-canvas');
@@ -142,13 +143,20 @@ document.addEventListener('DOMContentLoaded', () => {
     requestSensors();
     stageLetter.classList.add('hidden');
 
+    // Reveal video montage smoothly behind cake and memories
+    if (bgVideoWrap) {
+      bgVideoWrap.classList.add('active');
+    }
+    if (cakeMontageVideo) {
+      if (!cakeMontageVideo.src.includes('montage.mp4')) {
+        cakeMontageVideo.src = './montage.mp4';
+      }
+      cakeMontageVideo.play().catch(e => console.log('Video play error:', e));
+    }
+
     // Reveal cake stage
     setTimeout(() => {
       stageCake.classList.remove('hidden');
-
-      // Start looping video montage
-      cakeMontageVideo.src = './montage.mp4';
-      cakeMontageVideo.play().catch(() => {});
 
       // Initialize Three.js 3D Birthday Cake
       if (!cakeScene) {
