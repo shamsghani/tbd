@@ -3,10 +3,13 @@ import { HologramViewer } from './hologramViewer.js';
 import { MicBlowDetector } from './micBlowDetector.js';
 import { fireGrandCelebration, fireSideCannons } from './confetti.js';
 import { MEMORIES } from './memoriesData.js';
+import { CountdownMeadow } from './countdownMeadow.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
   const stageLock = document.getElementById('stage-lock');
+  const meadowCanvas = document.getElementById('meadow-canvas');
+  let countdownMeadow = null;
   const lockForm = document.getElementById('lock-form');
   const lockInput = document.getElementById('lock-input');
   const lockError = document.getElementById('lock-error');
@@ -193,6 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem('tehrim_auth', 'true');
     stageLock.classList.add('hidden');
     stageEnvelope.classList.remove('hidden');
+    if (countdownMeadow) {
+      countdownMeadow.destroy();
+      countdownMeadow = null;
+    }
   };
 
   // Check if already authenticated during this session
@@ -202,6 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
       stageEnvelope.classList.remove('hidden');
     } else {
       showCountdown();
+      if (meadowCanvas) {
+        countdownMeadow = new CountdownMeadow(meadowCanvas);
+      }
+    }
+  } else {
+    // Show living meadow on initial lock / countdown screen
+    if (meadowCanvas) {
+      countdownMeadow = new CountdownMeadow(meadowCanvas);
     }
   }
 
