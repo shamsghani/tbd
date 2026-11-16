@@ -20,32 +20,38 @@ export function getFlowerCount() {
   return Math.min(24, Math.max(1, 1 + Math.floor(progress * 23)));
 }
 
-// 24 Deterministic Flower Configurations across species, palettes, and relative horizontal positions
+// 24 Deterministic Flower Configurations:
+// Arranged with Crown Shyness (Canopy Stratification & Phototropic Curvature)
+// 1. Existing 6 flowers (indices 0-5) retain their exact identities and baseline coordinates
+// 2. Remaining 18 flowers inhabit negative 2D space (alternating high/low altitudes and leaning away from neighbors)
 const FLOWER_SPECS = [
-  { xPct: 0.505, type: 'rose', height: 145, seed: 101, genome: { hue: 0 } },    // 1: Centerpiece blooming rose (Right now!)
-  { xPct: 0.22, type: 'tulip', height: 130, seed: 202 },                       // 2
-  { xPct: 0.78, type: 'daffodil', height: 140, seed: 303 },                    // 3
-  { xPct: 0.35, type: 'iris', height: 155, seed: 404 },                        // 4
-  { xPct: 0.65, type: 'marigold', height: 135, seed: 505 },                    // 5
-  { xPct: 0.12, type: 'sunflower', height: 165, seed: 606 },                   // 6
-  { xPct: 0.88, type: 'hibiscus', height: 150, seed: 707 },                    // 7
-  { xPct: 0.42, type: 'dandelion', height: 125, seed: 808 },                   // 8
-  { xPct: 0.58, type: 'tulip', height: 145, seed: 909 },                       // 9
-  { xPct: 0.28, type: 'thistle', height: 135, seed: 1010 },                    // 10
-  { xPct: 0.72, type: 'rose', height: 155, seed: 1111 },                       // 11
-  { xPct: 0.06, type: 'iris', height: 160, seed: 1212 },                       // 12
-  { xPct: 0.94, type: 'sunflower', height: 170, seed: 1313 },                  // 13
-  { xPct: 0.18, type: 'daffodil', height: 130, seed: 1414 },                   // 14
-  { xPct: 0.82, type: 'marigold', height: 140, seed: 1515 },                   // 15
-  { xPct: 0.46, type: 'hibiscus', height: 150, seed: 1616 },                   // 16
-  { xPct: 0.54, type: 'dandelion', height: 120, seed: 1717 },                   // 17
-  { xPct: 0.32, type: 'tulip', height: 145, seed: 1818 },                      // 18
-  { xPct: 0.68, type: 'iris', height: 155, seed: 1919 },                       // 19
-  { xPct: 0.15, type: 'rose', height: 145, seed: 2020 },                       // 20
-  { xPct: 0.85, type: 'thistle', height: 135, seed: 2121 },                    // 21
-  { xPct: 0.38, type: 'daffodil', height: 140, seed: 2222 },                   // 22
-  { xPct: 0.62, type: 'sunflower', height: 165, seed: 2323 },                  // 23
-  { xPct: 0.485, type: 'rose', height: 175, seed: 2424 }                       // 24: Grand Golden Anthesis on midnight of 22nd!
+  // --- First 6 Active Flowers (Nov 14 - Nov 16) ---
+  { xPct: 0.505, type: 'rose', height: 145, seed: 101, curvature: 0.0, genome: { hue: 0 } },        // 0: Centerpiece English Rose
+  { xPct: 0.22,  type: 'tulip', height: 105, seed: 202, curvature: -0.06 },                          // 1: Chalice Tulip
+  { xPct: 0.78,  type: 'daffodil', height: 160, seed: 303, curvature: 0.05 },                       // 2: Star Daffodil
+  { xPct: 0.35,  type: 'iris', height: 185, seed: 404, curvature: -0.06 },                           // 3: Tall Purple Iris
+  { xPct: 0.65,  type: 'marigold', height: 125, seed: 505, curvature: 0.06 },                       // 4: Golden Pom-Pom Marigold
+  { xPct: 0.12,  type: 'sunflower', height: 215, seed: 606, curvature: -0.05 },                      // 5: Towering Left Giant Sunflower
+
+  // --- Canopy Shyness Successional Blooms (Nov 17 - Nov 22) ---
+  { xPct: 0.965, type: 'sunflower', height: 220, seed: 1313, curvature: 0.12 },                     // 6: Right Flank Towering Sunflower
+  { xPct: 0.865, type: 'hibiscus', height: 165, seed: 707, curvature: 0.05 },                       // 7: Mid-tall Tropical Hibiscus
+  { xPct: 0.575, type: 'iris', height: 195, seed: 1919, curvature: 0.05 },                          // 8: Soaring Tall Iris (towers above rose/marigold gap)
+  { xPct: 0.05,  type: 'iris', height: 180, seed: 1212, curvature: -0.12 },                          // 9: Left Edge Framer Iris
+  { xPct: 0.44,  type: 'thistle', height: 175, seed: 1616, curvature: -0.08 },                       // 10: Tall Spiny Thistle in high pocket
+  { xPct: 0.69,  type: 'tulip', height: 90, seed: 909, curvature: -0.06 },                           // 11: Low Chalice Tulip nestled beneath Marigold & Daffodil
+  { xPct: 0.27,  type: 'rose', height: 145, seed: 1111, curvature: 0.08 },                           // 12: Mid-tier Rose between Tulip and Iris
+  { xPct: 0.165, type: 'dandelion', height: 75, seed: 808, curvature: 0.05 },                       // 13: Ground Dandelion under Sunflower canopy
+  { xPct: 0.535, type: 'tulip', height: 85, seed: 1818, curvature: 0.06 },                           // 14: Low Petite Tulip nodding beside Centerpiece Rose
+  { xPct: 0.395, type: 'daffodil', height: 130, seed: 1414, curvature: 0.06 },                      // 15: Mid-tier Daffodil between Iris and Thistle
+  { xPct: 0.825, type: 'marigold', height: 105, seed: 1515, curvature: 0.06 },                      // 16: Low Marigold beside Daffodil
+  { xPct: 0.475, type: 'dandelion', height: 70, seed: 1717, curvature: -0.05 },                      // 17: Ground Dandelion beside Rose base
+  { xPct: 0.735, type: 'rose', height: 145, seed: 2020, curvature: -0.05 },                          // 18: Mid-tier Rose in open right pocket
+  { xPct: 0.615, type: 'dandelion', height: 75, seed: 2222, curvature: 0.04 },                      // 19: Ground Dandelion under Iris
+  { xPct: 0.085, type: 'tulip', height: 95, seed: 2121, curvature: 0.08 },                           // 20: Low Tulip between Left Iris and Sunflower
+  { xPct: 0.31,  type: 'thistle', height: 110, seed: 1010, curvature: -0.06 },                      // 21: Low Thistle under Iris
+  { xPct: 0.905, type: 'dandelion', height: 80, seed: 2323, curvature: -0.05 },                      // 22: Ground Dandelion clock near right Sunflower
+  { xPct: 0.935, type: 'thistle', height: 130, seed: 2424, curvature: -0.06 }                       // 23: Mid Thistle completing the 24th bloom!
 ];
 
 export class CountdownMeadow {
@@ -98,17 +104,17 @@ export class CountdownMeadow {
 
     // Responsive scaling: delicate on mobile, lush on desktop, adjusts as meadow fills up
     const isMobile = w < 600;
-    const baseScale = isMobile ? 0.68 : 0.85;
+    const baseScale = isMobile ? 0.62 : 0.85;
     // When garden reaches 24 flowers, scale down slightly so all 24 flowers breathe easily
-    const densityScale = count > 8 ? Math.max(0.78, 1 - (count - 8) * 0.012) : 1.0;
+    const densityScale = count > 8 ? Math.max(0.72, 1 - (count - 8) * 0.012) : 1.0;
     const plantScale = Number((baseScale * densityScale).toFixed(2));
 
-    // Clamp plant height to at most 26% (mobile) or 32% (desktop) of screen height
-    const maxPlantH = h * (isMobile ? 0.26 : 0.32);
+    // Clamp plant height to allow natural vertical stratification (35% mobile, 40% desktop)
+    const maxPlantH = h * (isMobile ? 0.35 : 0.40);
 
     for (let i = 0; i < count; i++) {
       const spec = FLOWER_SPECS[i];
-      const x = Math.max(20, Math.min(w - 20, w * spec.xPct));
+      const x = Math.max(16, Math.min(w - 16, w * spec.xPct));
       const plantH = Math.min(spec.height * plantScale, maxPlantH);
 
       const plant = this.garden.addPlant(x, {
@@ -117,6 +123,8 @@ export class CountdownMeadow {
         bloom: 1.0,
         height: plantH,
         scale: plantScale,
+        curvature: spec.curvature !== undefined ? spec.curvature : 0,
+        yOffset: spec.yOffset !== undefined ? spec.yOffset * (isMobile ? 0.7 : 1.0) : 0,
         seed: spec.seed,
         genome: spec.genome || {},
         palette: spec.palette || 'botanical'

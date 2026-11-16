@@ -3841,7 +3841,7 @@
         palette: this.paletteName
       }));
       this._applyPlantFeatures(plant);
-      this.plants.push({ x: px, fx, plant });
+      this.plants.push({ x: px, fx, yOffset: plantOptions.yOffset || 0, plant });
       if (this._static) this.render();
       return plant;
     }
@@ -4128,9 +4128,9 @@
 
       const groundY = this.groundY;
       for (let i = 0; i < this.plants.length; i++) {
-        const { x, plant } = this.plants[i];
+        const { x, yOffset, plant } = this.plants[i];
         const gust = this.options.gusts ? this.wind.sample(x, this.windTime) : 0;
-        const glyphs = plant.generateGlyphs(x, groundY, time, wind, gust);
+        const glyphs = plant.generateGlyphs(x, groundY + (yOffset || 0), time, wind, gust);
         for (let j = 0; j < glyphs.length; j++) out.push(glyphs[j]);
       }
 
