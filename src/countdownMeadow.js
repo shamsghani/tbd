@@ -116,17 +116,17 @@ export class CountdownMeadow {
     // On mobile, card sits at top with ~24px padding and ~180px height -> bottom ≈ 210px.
     // Ground baseline is at groundY = h - 45px.
     // Space below password box is (groundY - cardBottom).
-    // Utilizing up to 80% of the space below the password box:
+    // Utilizing 50% of the space below the password box (balanced height & elegant negative space):
     const groundY = h - 45;
     const cardBottom = isMobile ? Math.min(220, h * 0.28) : Math.min(270, h * 0.35);
     const spaceBelowCard = Math.max(220, groundY - cardBottom);
-    const maxCanopyH = spaceBelowCard * 0.80;
+    const maxCanopyH = spaceBelowCard * 0.50;
 
     for (let i = 0; i < count; i++) {
       const spec = FLOWER_SPECS[i];
       const x = Math.max(16, Math.min(w - 16, w * spec.xPct));
-      // Proportional vertical distribution up to 80% of space below the password box
-      const plantH = Math.max(45, (spec.height / 450) * maxCanopyH);
+      // Proportional vertical distribution up to 50% of space below the password box
+      const plantH = Math.max(40, (spec.height / 450) * maxCanopyH);
 
       const plant = this.garden.addPlant(x, {
         type: spec.type,
