@@ -30,8 +30,9 @@ html, body {
   background-color: var(--bg-deep);
   color: var(--text-light);
   font-family: 'Plus Jakarta Sans', sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
+  overscroll-behavior: none;
 }
 
 /* Base Stage Container */
@@ -66,10 +67,15 @@ html, body {
 #stage-lock {
   background: radial-gradient(circle at 50% 25%, #151620 0%, #06070a 100%);
   z-index: 100;
-  position: relative;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
   overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
   justify-content: flex-start;
-  padding-top: max(8vh, 48px);
+  padding-top: max(6vh, 32px);
 }
 
 .meadow-canvas {
@@ -837,15 +843,19 @@ html, body {
 
 @media (max-width: 600px) {
   #stage-lock {
-    padding-top: max(5vh, 32px);
+    padding-top: max(4vh, 24px);
+    height: 100dvh;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
   }
   .lock-card {
-    padding: 1.45rem 1.25rem;
+    padding: 1.35rem 1.2rem;
     border-radius: 18px;
     width: min(310px, 88vw);
   }
   .lock-prompt {
-    font-size: 1.12rem;
-    margin-bottom: 1.05rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.95rem;
   }
 }
