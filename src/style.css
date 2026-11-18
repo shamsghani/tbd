@@ -248,21 +248,11 @@ html, body {
 
 .lock-greeting {
   font-family: 'Caveat', cursive;
-  font-size: 1.85rem;
+  font-size: 1.95rem;
   color: var(--accent-gold);
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
   text-shadow: 0 0 16px rgba(255, 200, 122, 0.45);
-  line-height: 1.1;
-}
-
-.lock-permission-text {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.05rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.78);
-  font-style: italic;
-  margin-bottom: 1.35rem;
-  padding: 0 0.4rem;
+  line-height: 1.15;
 }
 
 .lock-permission-btn {
