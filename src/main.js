@@ -4,7 +4,6 @@ import { MicBlowDetector } from './micBlowDetector.js';
 import { fireGrandCelebration, fireSideCannons } from './confetti.js';
 import { MEMORIES } from './memoriesData.js';
 import { CountdownMeadow } from './countdownMeadow.js';
-import { StargazingScene } from './stargazingScene.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
@@ -542,14 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
     rowEl.appendChild(trackEl);
     fairyWall.appendChild(rowEl);
   });
-
-  // SECRET EPILOGUE: Stargazing on the hill & hiding Orion
-  const sectionStargazing = document.getElementById('section-stargazing');
-  const scrollResistanceBarrier = document.getElementById('scroll-resistance-barrier');
-  let stargazingScene = null;
-  if (sectionStargazing && scrollResistanceBarrier) {
-    stargazingScene = new StargazingScene(sectionStargazing, scrollResistanceBarrier);
-  }
 
   // STAGE 5: OPEN HOLOGRAPHIC 3D ZOOM MODAL
   const openHologramModal = (mem) => {
