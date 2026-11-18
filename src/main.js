@@ -62,11 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
           + ((e & hash[5]) ^ ((~e) & hash[6]))
           + k[i]
           + (w[i] = (i < 16) ? w[i] : (
-              w[i - 16]
-              + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
-              + w[i - 7]
-              + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
-            ) | 0
+            w[i - 16]
+            + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+            + w[i - 7]
+            + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+          ) | 0
           );
         const temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
           + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
@@ -553,10 +553,10 @@ document.addEventListener('DOMContentLoaded', () => {
   hologramViewer.onTilt = (mouse) => {
     if (currentModalMemory && currentModalMemory.id === 'mem_stargaze') {
       const tilt = mouse.length();
-      if (tilt > 0.30) {
+      if (tilt > 0.72) {
         hologramDate.textContent = 'look who finally stopped hiding ✦';
         hologramDate.style.color = '#c88636';
-      } else if (tilt < 0.16) {
+      } else if (tilt < 0.48) {
         hologramDate.textContent = currentModalMemory.date;
         hologramDate.style.color = '#2b2824';
       }

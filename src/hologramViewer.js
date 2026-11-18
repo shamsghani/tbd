@@ -312,8 +312,9 @@ export class HologramViewer {
             vec4 overlayColor = texture2D(uOverlay, finalUv);
             // Tilt magnitude: 0 head-on, rises as card turns
             float tiltMag = length(uMouse);
-            // Smooth reveal transition: begins emerging at 0.12 tilt, fully vivid by 0.42 tilt
-            float reveal = smoothstep(0.12, 0.42, tiltMag);
+            // Extreme angle reveal: remains completely hidden on normal/slight tilts,
+            // begins emerging at 0.55 tilt and reaches full brilliance at 0.88 tilt
+            float reveal = smoothstep(0.55, 0.88, tiltMag);
             baseColor = mix(baseColor, overlayColor, reveal);
           }
 
@@ -360,13 +361,13 @@ export class HologramViewer {
     this.mouse.y += (this.targetMouse.y - this.mouse.y) * factor;
 
     // Tilt the physical Polaroid card FRAME in sync with optical parallax!
-    // Tilting right (mouse.x > 0) -> rotateY positive (+14 deg)
-    // Tilting down (mouse.y > 0) -> rotateX negative (-14 deg)
+    // Tilting right (mouse.x > 0) -> rotateY positive (+16 deg)
+    // Tilting down (mouse.y > 0) -> rotateX negative (-16 deg)
     if (this.frameElement) {
-      const rotY = (this.mouse.x * 14).toFixed(2);
-      const rotX = (-this.mouse.y * 14).toFixed(2);
-      const shadowX = (-this.mouse.x * 20).toFixed(1);
-      const shadowY = (this.mouse.y * 20 + 32).toFixed(1);
+      const rotY = (this.mouse.x * 16).toFixed(2);
+      const rotX = (-this.mouse.y * 16).toFixed(2);
+      const shadowX = (-this.mouse.x * 22).toFixed(1);
+      const shadowY = (this.mouse.y * 22 + 32).toFixed(1);
 
       this.frameElement.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1)`;
       this.frameElement.style.boxShadow = `${shadowX}px ${shadowY}px 60px rgba(0, 0, 0, 0.85), 0 0 32px rgba(255, 200, 122, 0.12)`;
