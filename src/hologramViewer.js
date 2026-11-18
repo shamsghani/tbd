@@ -4,6 +4,7 @@ import * as THREE from 'three';
  * 3D Hologram & Spatial Depth Parallax Viewer
  * - Full aperture fill (NO black borders, NO distorted edges)
  * - Synchronized 3D card tilt and optical parallax
+ * - Hyper-responsive gyro tracking with automatic posture recalibration
  * - Supports phone gyroscope, touch dragging, and mouse movement
  */
 export class HologramViewer {
@@ -33,7 +34,11 @@ export class HologramViewer {
     this.mouse = new THREE.Vector2(0, 0);
     this.targetMouse = new THREE.Vector2(0, 0);
 
-    this.initialBeta = null;
+    // Orientation calibration
+    this.baselineBeta = null;
+    this.baselineGamma = null;
+    this.lastTime = 0;
+
     this.isTouchDragging = false;
     this.touchStart = { x: 0, y: 0 };
     this.touchOffset = { x: 0, y: 0 };
@@ -46,46 +51,100 @@ export class HologramViewer {
     this.animationId = requestAnimationFrame(this.animate);
   }
 
+  /**
+   * Reset the gyro origin so whatever angle the user is currently holding
+   * the phone becomes the neutral (0, 0) center position.
+   */
+  recalibrate() {
+    this.baselineBeta = null;
+    this.baselineGamma = null;
+  }
+
   initSensors() {
+    const getScreenAngle = () => {
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
+        return window.screen.orientation.angle;
+      }
+      if (typeof window.orientation === 'number') {
+        return window.orientation;
+      }
+      return 0;
+    };
+
     const onOrientation = (e) => {
-      if (e.gamma !== null && e.beta !== null) {
-        if (this.initialBeta === null) {
-          this.initialBeta = e.beta;
-        }
+      if (e.gamma === null || e.beta === null) return;
 
-        // Roll: left / right tilt
-        // gamma: -90 (left) to +90 (right). Normal range: -25 to +25
-        const roll = Math.max(-25, Math.min(25, e.gamma)) / 25;
+      const angle = getScreenAngle();
+      let rawRoll = e.gamma;
+      let rawPitch = e.beta;
 
-        // Pitch: front / back tilt
-        // Center around nominal 48 deg holding angle
-        const baseBeta = (this.initialBeta > 20 && this.initialBeta < 80) ? this.initialBeta : 48;
-        const pitch = Math.max(-25, Math.min(25, e.beta - baseBeta)) / 25;
+      // Adapt axes based on device orientation (portrait vs landscape)
+      if (angle === 90) {
+        rawRoll = -e.beta;
+        rawPitch = e.gamma;
+      } else if (angle === -90 || angle === 270) {
+        rawRoll = e.beta;
+        rawPitch = -e.gamma;
+      } else if (angle === 180) {
+        rawRoll = -e.gamma;
+        rawPitch = -e.beta;
+      }
 
-        // Match physical optical direction:
-        // Tilting right (roll > 0) -> card rotates right, foreground shifts right
-        // Tilting down (pitch > 0) -> card rotates down, foreground shifts down
-        if (!this.isTouchDragging) {
-          this.targetMouse.x = roll;
-          this.targetMouse.y = pitch;
-        }
+      // First sample after opening modal or recalibrating sets the resting baseline
+      if (this.baselineGamma === null || this.baselineBeta === null) {
+        this.baselineGamma = rawRoll;
+        this.baselineBeta = rawPitch;
+        return;
+      }
+
+      // If user drastically shifts posture (>35 deg deviation), gently drift baseline
+      // so the card never remains permanently pegged at an extreme edge
+      const deltaRoll = rawRoll - this.baselineGamma;
+      const deltaPitch = rawPitch - this.baselineBeta;
+
+      if (Math.abs(deltaRoll) > 35) {
+        this.baselineGamma += (rawRoll - this.baselineGamma) * 0.05;
+      }
+      if (Math.abs(deltaPitch) > 35) {
+        this.baselineBeta += (rawPitch - this.baselineBeta) * 0.05;
+      }
+
+      // Active responsive tilt range: ±14 degrees for full deflection
+      // Natural wrist movements (5° - 10°) now feel snappy, effortless, and alive
+      const TILT_RANGE = 14.0;
+      const roll = Math.max(-1, Math.min(1, (rawRoll - this.baselineGamma) / TILT_RANGE));
+      const pitch = Math.max(-1, Math.min(1, (rawPitch - this.baselineBeta) / TILT_RANGE));
+
+      if (!this.isTouchDragging) {
+        this.targetMouse.x = roll;
+        this.targetMouse.y = pitch;
       }
     };
 
-    // Attach listeners
-    window.addEventListener('deviceorientation', onOrientation, true);
-    if ('ondeviceorientationabsolute' in window) {
-      window.addEventListener('deviceorientationabsolute', onOrientation, true);
-    }
+    // Attach standard deviceorientation listener
+    let standardListenerActive = false;
+    const handleStandardOrientation = (e) => {
+      standardListenerActive = true;
+      onOrientation(e);
+    };
 
-    // Touch / mouse movement
+    window.addEventListener('deviceorientation', handleStandardOrientation, { passive: true });
+
+    // Fallback to absolute only if standard event never fires
+    setTimeout(() => {
+      if (!standardListenerActive && 'ondeviceorientationabsolute' in window) {
+        window.addEventListener('deviceorientationabsolute', onOrientation, { passive: true });
+      }
+    }, 1000);
+
+    // Touch / mouse movement for desktop
     window.addEventListener('mousemove', (e) => {
       if (this.isTouchDragging) return;
       const rect = this.container.getBoundingClientRect();
       const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-      this.targetMouse.x = Math.max(-1, Math.min(1, nx));
-      this.targetMouse.y = Math.max(-1, Math.min(1, ny));
+      this.targetMouse.x = Math.max(-1, Math.min(1, nx * 1.15));
+      this.targetMouse.y = Math.max(-1, Math.min(1, ny * 1.15));
     });
   }
 
@@ -105,8 +164,8 @@ export class HologramViewer {
 
     window.addEventListener('touchmove', (e) => {
       if (this.isTouchDragging && e.touches.length === 1) {
-        const dx = (e.touches[0].clientX - this.touchStart.x) / 140;
-        const dy = (e.touches[0].clientY - this.touchStart.y) / 140;
+        const dx = (e.touches[0].clientX - this.touchStart.x) / 100;
+        const dy = (e.touches[0].clientY - this.touchStart.y) / 100;
         this.targetMouse.x = Math.max(-1, Math.min(1, this.touchOffset.x + dx));
         this.targetMouse.y = Math.max(-1, Math.min(1, this.touchOffset.y + dy));
       }
@@ -114,7 +173,18 @@ export class HologramViewer {
 
     window.addEventListener('touchend', () => {
       this.isTouchDragging = false;
+      // Re-zero baseline on finger release to keep the current perspective smoothly
+      this.recalibrate();
     }, { passive: true });
+
+    // Tap on card frame instantly recalibrates to current angle
+    if (this.frameElement) {
+      this.frameElement.addEventListener('click', () => {
+        if (!this.isTouchDragging) {
+          this.recalibrate();
+        }
+      });
+    }
   }
 
   initResize() {
@@ -129,6 +199,8 @@ export class HologramViewer {
   }
 
   async loadMemory(photoUrl, depthUrl) {
+    this.recalibrate();
+
     if (this.mesh) {
       this.scene.remove(this.mesh);
       if (this.mesh.geometry) this.mesh.geometry.dispose();
@@ -160,8 +232,8 @@ export class HologramViewer {
         uImage: { value: colorTex },
         uDepth: { value: depthTex },
         uMouse: { value: new THREE.Vector2(0, 0) },
-        // Subtle, elegant optical parallax (never exposes borders)
-        uParallax: { value: 0.038 },
+        // Increased parallax for rich, tangible depth relief
+        uParallax: { value: 0.052 },
         uResolution: { value: new THREE.Vector2(this.width, this.height) },
         uImageRes: { value: new THREE.Vector2(imgW, imgH) },
         uTime: { value: 0 }
@@ -183,7 +255,7 @@ export class HologramViewer {
         uniform float uTime;
         varying vec2 vUv;
 
-        // Cover aspect ratio function with 4% zoom margin so parallax never clips edges
+        // Cover aspect ratio function with 10% zoom margin so parallax never clips edges
         vec2 getCoverUv(vec2 uv, vec2 screenRes, vec2 texRes) {
           float screenAspect = screenRes.x / screenRes.y;
           float texAspect = texRes.x / texRes.y;
@@ -191,8 +263,7 @@ export class HologramViewer {
             min(screenAspect / texAspect, 1.0),
             min((1.0 / screenAspect) / (1.0 / texAspect), 1.0)
           );
-          // 1.08 scale factor provides buffer room for parallax shift
-          vec2 scaled = (uv - 0.5) / 1.08 + 0.5;
+          vec2 scaled = (uv - 0.5) / 1.10 + 0.5;
           return vec2(
             scaled.x * ratio.x + (1.0 - ratio.x) * 0.5,
             scaled.y * ratio.y + (1.0 - ratio.y) * 0.5
@@ -246,26 +317,33 @@ export class HologramViewer {
   animate(time) {
     this.animationId = requestAnimationFrame(this.animate);
 
-    // Smooth spring damping
-    this.mouse.x += (this.targetMouse.x - this.mouse.x) * 0.12;
-    this.mouse.y += (this.targetMouse.y - this.mouse.y) * 0.12;
+    const now = time ? time * 0.001 : performance.now() * 0.001;
+    const dt = this.lastTime ? Math.min(now - this.lastTime, 0.1) : 0.016;
+    this.lastTime = now;
 
-    // Tilt the physical Polaroid card FRAME in sync with the optical parallax!
-    // Tilting right (mouse.x > 0) -> rotateY positive (+12 deg)
-    // Tilting down (mouse.y > 0) -> rotateX negative (-12 deg)
+    // Snappy responsive exponential smoothing:
+    // Speed factor 18.0 delivers ~0.26 per frame at 60fps (dt ~0.016s),
+    // eliminating input lag while maintaining buttery smoothness across 60Hz and 120Hz displays
+    const factor = 1.0 - Math.exp(-18.0 * dt);
+    this.mouse.x += (this.targetMouse.x - this.mouse.x) * factor;
+    this.mouse.y += (this.targetMouse.y - this.mouse.y) * factor;
+
+    // Tilt the physical Polaroid card FRAME in sync with optical parallax!
+    // Tilting right (mouse.x > 0) -> rotateY positive (+14 deg)
+    // Tilting down (mouse.y > 0) -> rotateX negative (-14 deg)
     if (this.frameElement) {
-      const rotY = (this.mouse.x * 12).toFixed(2);
-      const rotX = (-this.mouse.y * 12).toFixed(2);
-      const shadowX = (-this.mouse.x * 18).toFixed(1);
-      const shadowY = (this.mouse.y * 18 + 30).toFixed(1);
+      const rotY = (this.mouse.x * 14).toFixed(2);
+      const rotX = (-this.mouse.y * 14).toFixed(2);
+      const shadowX = (-this.mouse.x * 20).toFixed(1);
+      const shadowY = (this.mouse.y * 20 + 32).toFixed(1);
 
       this.frameElement.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1)`;
-      this.frameElement.style.boxShadow = `${shadowX}px ${shadowY}px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(255, 200, 122, 0.1)`;
+      this.frameElement.style.boxShadow = `${shadowX}px ${shadowY}px 60px rgba(0, 0, 0, 0.85), 0 0 32px rgba(255, 200, 122, 0.12)`;
     }
 
-    if (this.mesh && this.mesh.material.uniforms) {
+    if (this.mesh && this.mesh.material && this.mesh.material.uniforms) {
       this.mesh.material.uniforms.uMouse.value.copy(this.mouse);
-      this.mesh.material.uniforms.uTime.value = time * 0.001;
+      this.mesh.material.uniforms.uTime.value = now;
     }
 
     this.renderer.render(this.scene, this.camera);

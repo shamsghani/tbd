@@ -793,12 +793,14 @@ html, body {
   align-items: center;
   position: relative;
   transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.92);
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
   transform-style: preserve-3d;
+  will-change: transform;
 }
 
 #modal-hologram-zoom.active .hologram-polaroid-frame {
-  transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(1);
+  /* Disable CSS transform transition while modal is open so requestAnimationFrame updates in 0ms with zero lag */
+  transition: box-shadow 0.15s ease;
 }
 
 .hologram-viewport {

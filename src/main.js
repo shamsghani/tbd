@@ -329,7 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. iOS DeviceOrientation permission
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
-        .then(res => console.log('DeviceOrientation permission:', res))
+        .then(res => {
+          console.log('DeviceOrientation permission:', res);
+          if (res === 'granted' && hologramViewer) {
+            hologramViewer.recalibrate();
+          }
+        })
         .catch(err => console.log('DeviceOrientation err:', err));
     }
 
@@ -479,7 +484,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // STAGE 5: OPEN HOLOGRAPHIC 3D ZOOM MODAL
   const openHologramModal = (mem) => {
+    requestSensors();
     hologramDate.textContent = mem.date;
+    hologramViewer.recalibrate();
     hologramViewer.loadMemory(mem.photo, mem.depth);
     modalHologram.classList.add('active');
     document.body.style.overflow = 'hidden'; // lock background scroll while modal open
@@ -488,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeHologramModal = () => {
     modalHologram.classList.remove('active');
     document.body.style.overflow = 'auto'; // restore natural scrolling
+    hologramViewer.recalibrate();
     if (hologramCard) {
       hologramCard.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.92)';
     }
