@@ -33,6 +33,7 @@ export class HologramViewer {
     // Tilt tracking: [-1, 1]
     this.mouse = new THREE.Vector2(0, 0);
     this.targetMouse = new THREE.Vector2(0, 0);
+    this.onTilt = null;
 
     // Orientation calibration
     this.baselineBeta = null;
@@ -198,7 +199,7 @@ export class HologramViewer {
     });
   }
 
-  async loadMemory(photoUrl, depthUrl) {
+  async loadMemory(photoUrl, depthUrl, overlayUrl = null) {
     this.recalibrate();
 
     if (this.mesh) {
@@ -212,15 +213,28 @@ export class HologramViewer {
     this.height = this.container.clientHeight || 400;
     this.renderer.setSize(this.width, this.height);
 
-    const [colorTex, depthTex] = await Promise.all([
+    const promises = [
       this.loadTexture(photoUrl),
       this.loadTexture(depthUrl)
-    ]);
+    ];
+    if (overlayUrl) {
+      promises.push(this.loadTexture(overlayUrl));
+    }
+
+    const textures = await Promise.all(promises);
+    const colorTex = textures[0];
+    const depthTex = textures[1];
+    const overlayTex = overlayUrl ? textures[2] : null;
 
     colorTex.generateMipmaps = true;
     colorTex.minFilter = THREE.LinearFilter;
     depthTex.generateMipmaps = true;
     depthTex.minFilter = THREE.LinearFilter;
+
+    if (overlayTex) {
+      overlayTex.generateMipmaps = true;
+      overlayTex.minFilter = THREE.LinearFilter;
+    }
 
     const imgW = colorTex.image.naturalWidth || colorTex.image.width || 800;
     const imgH = colorTex.image.naturalHeight || colorTex.image.height || 1000;
@@ -231,6 +245,8 @@ export class HologramViewer {
       uniforms: {
         uImage: { value: colorTex },
         uDepth: { value: depthTex },
+        uOverlay: { value: overlayTex || colorTex },
+        uHasOverlay: { value: overlayUrl ? 1.0 : 0.0 },
         uMouse: { value: new THREE.Vector2(0, 0) },
         // Increased parallax for rich, tangible depth relief
         uParallax: { value: 0.052 },
@@ -248,6 +264,8 @@ export class HologramViewer {
       fragmentShader: `
         uniform sampler2D uImage;
         uniform sampler2D uDepth;
+        uniform sampler2D uOverlay;
+        uniform float uHasOverlay;
         uniform vec2 uMouse;
         uniform float uParallax;
         uniform vec2 uResolution;
@@ -287,19 +305,32 @@ export class HologramViewer {
           vec2 finalShift = uMouse * (d2 - 0.5) * uParallax;
           vec2 finalUv = clamp(baseUv + finalShift, 0.001, 0.999);
 
-          vec4 color = texture2D(uImage, finalUv);
+          vec4 baseColor = texture2D(uImage, finalUv);
 
-          // Subtle holographic rainbow gleam that sweeps across the photo on tilt
-          float sheenPos = dot(finalUv, vec2(0.9, 1.1)) + uMouse.x * 0.7 + uMouse.y * 0.7;
-          float holoWave = sin(sheenPos * 6.28 + uTime * 0.4);
+          // If this photo has an overlay layer (Orion constellation appearing when turned on an angle):
+          if (uHasOverlay > 0.5) {
+            vec4 overlayColor = texture2D(uOverlay, finalUv);
+            // Tilt magnitude: 0 head-on, rises as card turns
+            float tiltMag = length(uMouse);
+            // Smooth reveal transition: begins emerging at 0.12 tilt, fully vivid by 0.42 tilt
+            float reveal = smoothstep(0.12, 0.42, tiltMag);
+            baseColor = mix(baseColor, overlayColor, reveal);
+          }
 
-          vec3 holoGleam = vec3(
-            sin(holoWave * 3.1415 + 0.0),
-            sin(holoWave * 3.1415 + 2.09),
-            sin(holoWave * 3.1415 + 4.18)
-          ) * 0.055 * (1.0 - d2 * 0.45);
+          // Subtle holographic rainbow gleam that sweeps across normal photos on tilt
+          vec3 holoGleam = vec3(0.0);
+          if (uHasOverlay < 0.5) {
+            float sheenPos = dot(finalUv, vec2(0.9, 1.1)) + uMouse.x * 0.7 + uMouse.y * 0.7;
+            float holoWave = sin(sheenPos * 6.28 + uTime * 0.4);
 
-          gl_FragColor = vec4(color.rgb + holoGleam, 1.0);
+            holoGleam = vec3(
+              sin(holoWave * 3.1415 + 0.0),
+              sin(holoWave * 3.1415 + 2.09),
+              sin(holoWave * 3.1415 + 4.18)
+            ) * 0.055 * (1.0 - d2 * 0.45);
+          }
+
+          gl_FragColor = vec4(baseColor.rgb + holoGleam, 1.0);
         }
       `
     });
@@ -344,6 +375,10 @@ export class HologramViewer {
     if (this.mesh && this.mesh.material && this.mesh.material.uniforms) {
       this.mesh.material.uniforms.uMouse.value.copy(this.mouse);
       this.mesh.material.uniforms.uTime.value = now;
+    }
+
+    if (this.onTilt) {
+      this.onTilt(this.mouse);
     }
 
     this.renderer.render(this.scene, this.camera);

@@ -359,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3D Gaussian Splat & Spatial Hologram Viewer for Polaroid Zoom
   const hologramViewer = new HologramViewer(hologramViewport, hologramCard);
+  window.__hologramViewer = hologramViewer;
 
   // Microphone Blow Detection & Cake Scene References
   let micDetector = null;
@@ -483,11 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1900);
   };
 
-  // STAGE 4: BUILD FAIRY LIGHT CLOTHESLINE WALL (3 STRINGS, 15 POLAROIDS)
+  // STAGE 4: BUILD FAIRY LIGHT CLOTHESLINE WALL (3 STRINGS, 16 POLAROIDS)
   const rows = [
     MEMORIES.slice(0, 5),
     MEMORIES.slice(5, 10),
-    MEMORIES.slice(10, 15)
+    MEMORIES.slice(10, 16)
   ];
 
   const tilts = [-3.5, 2.5, -2, 3.2, -2.8];
@@ -504,7 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Glowing light bulbs
     const bulbsEl = document.createElement('div');
     bulbsEl.className = 'fairy-bulbs-container';
-    for (let b = 0; b < 8; b++) {
+    const numBulbs = rowMemories.length >= 6 ? 10 : 8;
+    for (let b = 0; b < numBulbs; b++) {
       const bulb = document.createElement('div');
       bulb.className = 'fairy-bulb';
       bulbsEl.appendChild(bulb);
@@ -518,6 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
     rowMemories.forEach((mem, mIndex) => {
       const item = document.createElement('div');
       item.className = 'hanging-polaroid';
+      if (mem.id === 'mem_stargaze') {
+        item.classList.add('polaroid-stargaze-easteregg');
+      }
       const rot = tilts[(rIndex * 2 + mIndex) % tilts.length];
       item.style.setProperty('--rot', `${rot}deg`);
 
@@ -543,11 +548,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // STAGE 5: OPEN HOLOGRAPHIC 3D ZOOM MODAL
+  let currentModalMemory = null;
+
+  hologramViewer.onTilt = (mouse) => {
+    if (currentModalMemory && currentModalMemory.id === 'mem_stargaze') {
+      const tilt = mouse.length();
+      if (tilt > 0.30) {
+        hologramDate.textContent = 'look who finally stopped hiding ✦';
+        hologramDate.style.color = '#c88636';
+      } else if (tilt < 0.16) {
+        hologramDate.textContent = currentModalMemory.date;
+        hologramDate.style.color = '#2b2824';
+      }
+    }
+  };
+
   const openHologramModal = (mem) => {
+    currentModalMemory = mem;
     requestSensors();
     hologramDate.textContent = mem.date;
+    hologramDate.style.color = '#2b2824';
     hologramViewer.recalibrate();
-    hologramViewer.loadMemory(mem.photo, mem.depth);
+    hologramViewer.loadMemory(mem.photo, mem.depth, mem.overlay || null);
     modalHologram.classList.add('active');
     document.body.style.overflow = 'hidden'; // lock background scroll while modal open
   };
@@ -556,6 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalHologram.classList.remove('active');
     document.body.style.overflow = 'auto'; // restore natural scrolling
     hologramViewer.recalibrate();
+    currentModalMemory = null;
     if (hologramCard) {
       hologramCard.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.92)';
     }

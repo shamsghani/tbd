@@ -13,5 +13,6 @@ export const MEMORIES = [
   { id: 'mem_12', photo: './photos/mem_12.jpg', depth: './depths/mem_12.png', title: 'Sunset Horizon', date: 'Apr 2023' },
   { id: 'mem_13', photo: './photos/mem_13.jpg', depth: './depths/mem_13.png', title: 'Coffee & Tea', date: 'Nov 2026' },
   { id: 'mem_14', photo: './photos/mem_14.jpg', depth: './depths/mem_14.png', title: 'Story Time', date: 'Nov 2026' },
-  { id: 'mem_15', photo: './photos/mem_15.jpg', depth: './depths/mem_15.png', title: 'Pure Smiles', date: 'Nov 2026' }
+  { id: 'mem_15', photo: './photos/mem_15.jpg', depth: './depths/mem_15.png', title: 'Pure Smiles', date: 'Nov 2026' },
+  { id: 'mem_stargaze', photo: './photos/stargaze.jpg', depth: './depths/stargaze.png', overlay: './photos/stargaze_orion.jpg', title: 'a secret friend?', date: 'a secret friend?' }
 ];
