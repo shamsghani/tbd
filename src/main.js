@@ -109,6 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const lockInputView = document.getElementById('lock-input-view');
   const lockCountdownView = document.getElementById('lock-countdown-view');
+  const lockPermissionView = document.getElementById('lock-permission-view');
+  const btnGrantPermissions = document.getElementById('btn-grant-permissions');
   const lockStarIcon = document.getElementById('lock-star-icon');
 
   const cdDays = document.getElementById('cd-days');
@@ -142,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (diff <= 0) {
         clearInterval(countdownInterval);
-        unlockSite();
+        showPermissionView();
         return;
       }
 
@@ -167,9 +169,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const showCountdown = () => {
     sessionStorage.setItem('tehrim_auth', 'true');
     if (lockInputView) lockInputView.classList.add('hidden');
+    if (lockPermissionView) lockPermissionView.classList.add('hidden');
     if (lockCountdownView) lockCountdownView.classList.remove('hidden');
     startCountdownTimer();
   };
+
+  const unlockSite = () => {
+    sessionStorage.setItem('tehrim_auth', 'true');
+    stageLock.classList.add('hidden');
+    stageEnvelope.classList.remove('hidden');
+    if (countdownMeadow) {
+      countdownMeadow.destroy();
+      countdownMeadow = null;
+    }
+  };
+
+  const showPermissionView = () => {
+    sessionStorage.setItem('tehrim_auth', 'true');
+    // If permissions have already been granted in this session, skip straight to envelope
+    if (sessionStorage.getItem('sensors_granted') === 'true') {
+      unlockSite();
+      return;
+    }
+    if (lockInputView) lockInputView.classList.add('hidden');
+    if (lockCountdownView) lockCountdownView.classList.add('hidden');
+    if (lockPermissionView) lockPermissionView.classList.remove('hidden');
+  };
+
+  if (btnGrantPermissions) {
+    const handleGrant = async (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      btnGrantPermissions.disabled = true;
+      btnGrantPermissions.textContent = 'opening...';
+      btnGrantPermissions.style.opacity = '0.7';
+
+      try {
+        await requestSensors();
+      } catch (err) {
+        console.warn('Sensors error:', err);
+      }
+      sessionStorage.setItem('sensors_granted', 'true');
+      unlockSite();
+    };
+
+    btnGrantPermissions.addEventListener('click', handleGrant);
+    btnGrantPermissions.addEventListener('touchend', handleGrant, { passive: false });
+  }
 
   // Triple-tap ✦ star bypass for testing on any device
   let starTaps = 0;
@@ -184,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lockStarIcon.style.color = '#ff758f';
         lockStarIcon.style.transform = 'scale(1.25)';
         if (sessionStorage.getItem('tehrim_auth') === 'true') {
-          unlockSite();
+          showPermissionView();
         }
       } else {
         starTimer = setTimeout(() => { starTaps = 0; }, 1000);
@@ -192,21 +237,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const unlockSite = () => {
-    sessionStorage.setItem('tehrim_auth', 'true');
-    stageLock.classList.add('hidden');
-    stageEnvelope.classList.remove('hidden');
-    if (countdownMeadow) {
-      countdownMeadow.destroy();
-      countdownMeadow = null;
-    }
-  };
-
   // Check if already authenticated during this session
   if (sessionStorage.getItem('tehrim_auth') === 'true') {
     if (isUnlockedDate()) {
-      stageLock.classList.add('hidden');
-      stageEnvelope.classList.remove('hidden');
+      if (sessionStorage.getItem('sensors_granted') === 'true') {
+        stageLock.classList.add('hidden');
+        stageEnvelope.classList.remove('hidden');
+      } else {
+        showPermissionView();
+      }
     } else {
       showCountdown();
       if (meadowCanvas) {
@@ -228,16 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const hash = await computeHash(val);
 
-      // Secret Master Passcode: Skips countdown and opens envelope directly anytime
+      // Secret Master Passcode: Skips countdown and opens birthday experience directly anytime
       if (hash === MASTER_HASH) {
-        unlockSite();
+        showPermissionView();
         return;
       }
 
       // Standard Birthday Passcode: Checks date gate
       if (hash === TARGET_HASH) {
         if (isUnlockedDate()) {
-          unlockSite();
+          showPermissionView();
         } else {
           showCountdown();
         }
@@ -255,10 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Unlock verification error:', err);
       const fallback = fallbackSha256(`${SALT}:${val.trim().toLowerCase()}`);
       if (fallback === MASTER_HASH) {
-        unlockSite();
+        showPermissionView();
       } else if (fallback === TARGET_HASH) {
         if (isUnlockedDate()) {
-          unlockSite();
+          showPermissionView();
         } else {
           showCountdown();
         }
@@ -321,21 +360,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3D Gaussian Splat & Spatial Hologram Viewer for Polaroid Zoom
   const hologramViewer = new HologramViewer(hologramViewport, hologramCard);
 
-  // Microphone Blow Detection
+  // Microphone Blow Detection & Cake Scene References
   let micDetector = null;
+  let cakeScene = null;
 
   // Request iOS permissions immediately upon direct user touch
-  const requestSensors = () => {
+  async function requestSensors() {
+    const promises = [];
+
     // 1. iOS DeviceOrientation permission
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then(res => {
-          console.log('DeviceOrientation permission:', res);
-          if (res === 'granted' && hologramViewer) {
-            hologramViewer.recalibrate();
-          }
-        })
-        .catch(err => console.log('DeviceOrientation err:', err));
+      promises.push(
+        DeviceOrientationEvent.requestPermission()
+          .then(res => {
+            console.log('DeviceOrientation permission:', res);
+            if (res === 'granted' && hologramViewer) {
+              hologramViewer.recalibrate();
+            }
+          })
+          .catch(err => console.warn('DeviceOrientation err:', err))
+      );
     }
 
     // 2. Microphone access for blowing out the candle
@@ -345,14 +389,31 @@ document.addEventListener('DOMContentLoaded', () => {
           cakeScene.blowOut();
         }
       });
-      micDetector.start();
+      promises.push(micDetector.start());
     }
-  };
+
+    if (promises.length > 0) {
+      await Promise.allSettled(promises);
+    }
+  }
 
   // STAGE 1: TAP WAX SEAL / ENVELOPE
-  const handleOpenEnvelope = () => {
+  let isEnvelopeOpening = false;
+  const handleOpenEnvelope = async () => {
+    if (isEnvelopeOpening) return;
+    isEnvelopeOpening = true;
+
     startMusic();
-    requestSensors();
+
+    // Fallback: If permissions were not granted yet, await them before revealing the letter
+    if (sessionStorage.getItem('sensors_granted') !== 'true') {
+      try {
+        await requestSensors();
+      } catch (err) {
+        console.warn('Sensors fallback error:', err);
+      }
+      sessionStorage.setItem('sensors_granted', 'true');
+    }
 
     envelopeTrigger.classList.add('open');
 
@@ -367,7 +428,6 @@ document.addEventListener('DOMContentLoaded', () => {
   envelopeTrigger.addEventListener('click', handleOpenEnvelope);
 
   // STAGE 2: CLOSE LETTER -> REVEAL 3D CAKE & VIDEO MONTAGE
-  let cakeScene = null;
 
   btnCloseLetter.addEventListener('click', () => {
     requestSensors();

@@ -239,6 +239,52 @@ html, body {
   text-align: center;
 }
 
+/* Permission view before envelope & letter */
+.lock-permission-view {
+  text-align: center;
+  padding: 0.2rem 0;
+  width: 100%;
+}
+
+.lock-greeting {
+  font-family: 'Caveat', cursive;
+  font-size: 1.85rem;
+  color: var(--accent-gold);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 16px rgba(255, 200, 122, 0.45);
+  line-height: 1.1;
+}
+
+.lock-permission-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+  font-style: italic;
+  margin-bottom: 1.35rem;
+  padding: 0 0.4rem;
+}
+
+.lock-permission-btn {
+  width: 100%;
+  padding: 0.85rem 1.4rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff758f, #ffc87a);
+  border: none;
+  color: #1a0f1e;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255, 117, 143, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.lock-permission-btn:active {
+  transform: scale(0.97);
+}
+
 .shake-anim {
   animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
