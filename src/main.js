@@ -453,6 +453,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!cakeScene) {
         cakeScene = new CakeScene(cakeCanvas, handleCandleBlowOut);
       }
+      if (cakeCenterpiece) {
+        cakeCenterpiece.style.cursor = 'pointer';
+        cakeCenterpiece.onclick = () => {
+          if (cakeScene) cakeScene.blowOut();
+        };
+      }
 
       // Activate microphone listener for breath/blow
       if (micDetector) {

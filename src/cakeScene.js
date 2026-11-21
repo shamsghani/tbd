@@ -193,21 +193,12 @@ export class CakeScene {
     const el = this.renderer.domElement;
     el.style.cursor = 'pointer';
 
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    const handleClick = (e) => {
-      const rect = el.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      raycaster.setFromCamera(mouse, this.camera);
-      const intersects = raycaster.intersectObjects([this.flame, this.cakeGroup], true);
-      if (intersects.length > 0) {
-        this.blowOut();
-      }
+    const handleClick = () => {
+      this.blowOut();
     };
 
     el.addEventListener('click', handleClick);
+    el.addEventListener('pointerdown', handleClick);
   }
 
   blowOut() {
