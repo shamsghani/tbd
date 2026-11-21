@@ -134,46 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return now >= UNLOCK_DATE;
   };
 
-  let countdownInterval = null;
-  const startCountdownTimer = () => {
-    if (countdownInterval) clearInterval(countdownInterval);
-
-    const update = () => {
-      const now = new Date();
-      const diff = UNLOCK_DATE - now;
-
-      if (diff <= 0) {
-        clearInterval(countdownInterval);
-        showPermissionView();
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
-
-      if (cdDays) cdDays.textContent = String(days).padStart(2, '0');
-      if (cdHours) cdHours.textContent = String(hours).padStart(2, '0');
-      if (cdMins) cdMins.textContent = String(mins).padStart(2, '0');
-      if (cdSecs) cdSecs.textContent = String(secs).padStart(2, '0');
-    };
-
-    update();
-    countdownInterval = setInterval(update, 1000);
-  };
-
-  // Pre-calculate countdown values immediately
-  startCountdownTimer();
-
-  const showCountdown = () => {
-    sessionStorage.setItem('tehrim_auth', 'true');
-    if (lockInputView) lockInputView.classList.add('hidden');
-    if (lockPermissionView) lockPermissionView.classList.add('hidden');
-    if (lockCountdownView) lockCountdownView.classList.remove('hidden');
-    startCountdownTimer();
-  };
-
   const unlockSite = () => {
     sessionStorage.setItem('tehrim_auth', 'true');
     stageLock.classList.add('hidden');
@@ -195,6 +155,48 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lockCountdownView) lockCountdownView.classList.add('hidden');
     if (lockPermissionView) lockPermissionView.classList.remove('hidden');
   };
+
+  const showCountdown = () => {
+    sessionStorage.setItem('tehrim_auth', 'true');
+    if (lockInputView) lockInputView.classList.add('hidden');
+    if (lockPermissionView) lockPermissionView.classList.add('hidden');
+    if (lockCountdownView) lockCountdownView.classList.remove('hidden');
+    startCountdownTimer();
+  };
+
+  let countdownInterval = null;
+  const startCountdownTimer = () => {
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    const update = () => {
+      const now = new Date();
+      const diff = UNLOCK_DATE - now;
+
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        if (sessionStorage.getItem('tehrim_auth') === 'true') {
+          showPermissionView();
+        }
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      if (cdDays) cdDays.textContent = String(days).padStart(2, '0');
+      if (cdHours) cdHours.textContent = String(hours).padStart(2, '0');
+      if (cdMins) cdMins.textContent = String(mins).padStart(2, '0');
+      if (cdSecs) cdSecs.textContent = String(secs).padStart(2, '0');
+    };
+
+    update();
+    countdownInterval = setInterval(update, 1000);
+  };
+
+  // Pre-calculate countdown values immediately
+  startCountdownTimer();
 
   if (btnGrantPermissions) {
     const handleGrant = async (e) => {
